@@ -49,5 +49,3 @@ export default tseslint.config({
 })
 ```
 # axen
-# axen
-# axen
