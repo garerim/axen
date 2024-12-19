@@ -1,3 +1,8 @@
+import BoardGame from '@/components/BoardGame'
+import GameChat from '@/components/GameChat'
+import { useWebSocket } from '@/components/provider/WebSocketProvider'
+import PseudoDialog from '@/components/PseudoDialog'
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/werewolf/')({
@@ -5,9 +10,25 @@ export const Route = createFileRoute('/werewolf/')({
 })
 
 function RouteComponent() {
+
+  const { isConnected } = useWebSocket()
+
   return (
-    <div>
-      <h1>Werewolf</h1>
+    <div className='w-full h-full'>
+      {isConnected ? (
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel className='relative'>
+            <BoardGame />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel maxSize={35} minSize={20}>
+            <GameChat />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        <PseudoDialog />
+      )}
     </div>
   )
 }
+

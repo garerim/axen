@@ -31,7 +31,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 			>
 				{/* Front de la carte */}
 				<div className="absolute w-full backface-hidden">
-					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-4">
+					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-3">
 						<RoleImage role={role} />
 						{isMayor && <MayorBadge />}
 					</div>
@@ -39,7 +39,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 
 				{/* Dos de la carte */}
 				<div className="absolute w-full backface-hidden rotate-y-180">
-					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-4">
+					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-3">
 						<img src={backCardImage} alt="backCard" />
 						{isMayor && <MayorBadge />}
 					</div>
