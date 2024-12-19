@@ -9,6 +9,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 		role = "villager",
 		flipCard,
 		isFlipped,
+		isAlive = true,
 		isMayor = false,
 	} = props;
 
@@ -21,7 +22,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
 		<div
-			className={`relative w-64 h-64 cursor-pointer perspective-1000 ${className}`}
+			className={`relative w-64 h-64 cursor-pointer perspective-1000 ${!isAlive && 'grayscale'} ${className}`}
 			onClick={handleClick}
 		>
 			<div

@@ -75,7 +75,7 @@ export const RulesPage = () => {
                 {ROLES.map((role, index) => ( 
                     <div key={index.toString()} className="h-[400px]" >
                     {/* <div key={index.toString()} className="pl-6 h-424px mb-400px"> */}
-                        <WerewolfCard isMayor={role.isMayor} role={role.role} isFlipped={role.isFlipped} flipCard={(value) => setCardIsOpen(prevState => ({ ...prevState, [role.role]: value }))} />
+                        <WerewolfCard isMayor={role.isMayor} role={role.role} isAlive={role.isAlive} isFlipped={role.isFlipped} flipCard={(value) => setCardIsOpen(prevState => ({ ...prevState, [role.role]: value }))} />
                         {
                             !role.isFlipped && (
                                 <div className="bg-red-600 absolute p-6 rounded-lg ml-72 mr-6">
