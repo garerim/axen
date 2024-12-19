@@ -1,3 +1,4 @@
+import cupidonImage from "@/assets/werewolf/role/cupidon.png";
 import hunterImage from "@/assets/werewolf/role/hunter.png";
 import littleGirlImage from "@/assets/werewolf/role/petite-fille.png";
 import seerImage from "@/assets/werewolf/role/seer.png";
@@ -18,6 +19,7 @@ export const RoleImage = ({ role }: RoleImageProps) => {
     witch: witchImage,
     seer: seerImage,
     littleGirl: littleGirlImage,
+    cupidon: cupidonImage,
   };
 
   const image = roleImages[role] || villagerImage;

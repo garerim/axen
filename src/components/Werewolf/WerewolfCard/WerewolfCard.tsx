@@ -1,18 +1,25 @@
 import backCardImage from "@/assets/werewolf/role/backCard.png";
-import { useState } from "react";
 import { MayorBadge } from "./MayorBadge";
 import { RoleImage } from "./RoleImage";
 import type { WerewolfCardProps } from "./types";
 
 export const WerewolfCard = (props: WerewolfCardProps) => {
-	const { className = "", role = "villager", isMayor = false } = props;
-	const [isFlipped, setIsFlipped] = useState(true);
+	const {
+		className = "",
+		role = "villager",
+		flipCard,
+		isFlipped,
+		isMayor = false,
+	} = props;
 
 	const handleClick = () => {
-		setIsFlipped(!isFlipped);
+		if (flipCard) {
+			flipCard(!isFlipped);
+		}
 	};
 
 	return (
+		// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
 		<div
 			className={`relative w-64 h-64 cursor-pointer perspective-1000 ${className}`}
 			onClick={handleClick}
@@ -26,7 +33,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 				<div className="absolute w-full backface-hidden">
 					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-3">
 						<RoleImage role={role} />
-                        {isMayor && <MayorBadge />}
+						{isMayor && <MayorBadge />}
 					</div>
 				</div>
 
@@ -34,7 +41,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 				<div className="absolute w-full backface-hidden rotate-y-180">
 					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-3">
 						<img src={backCardImage} alt="backCard" />
-                        {isMayor && <MayorBadge />}
+						{isMayor && <MayorBadge />}
 					</div>
 				</div>
 			</div>
