@@ -3,18 +3,22 @@ import { ReactNode, useEffect, useRef, useState, createContext, useContext } fro
 interface WebSocketProviderProps {
     children: ReactNode;
 }
-type Player = {
+export type Player = {
     id: number;
     pseudo: string;
     role?: string;
+    isAlive?: boolean;
+    isMayor?: boolean;
 };
 
 type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote';
 
 type WebSocketContextType = {
+    currentPlayer: Player | null;
     sendMessage: (type: string, data: any) => void;
     setPseudo: (pseudo: string) => void;
     isConnected: boolean;
+    // TODO : Update le type des messages. Remplacer role et sender par sender: Player + Add une variable time pour savoir si le message à été ecrit pendant la nuit ou le jour
     messages: Array<{ type: string; message: string; sender?: string; role?: string }>;
     players: Player[];
     playersInGame: Player[];
@@ -26,6 +30,10 @@ type WebSocketContextType = {
     startGame: () => void;
     currentPhase: Phase;
     phaseTimeRemaining: number;
+    voteWerewolf: (playerPseudo: string, voterPseudo: string) => void;
+    werewolfVoted: { voterPseudo: string, votedPseudo: string }[];
+    voteDay: (playerPseudo: string, voterPseudo: string) => void;
+    dayVoted: { voterPseudo: string, votedPseudo: string }[];
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -52,6 +60,7 @@ export const getPseudoLocale = () => {
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [isConnected, setIsConnected] = useState(false);
+    const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
     const [players, setPlayers] = useState<Player[]>([]);
     const [playersInGame, setPlayersInGame] = useState<Player[]>([]);
     const [messages, setMessages] = useState<Array<{ type: string; message: string; sender?: string; role?: string }>>([]);
@@ -60,13 +69,15 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [rolesDistributed, setRolesDistributed] = useState(false);
     const [currentPhase, setCurrentPhase] = useState<Phase>('waiting');
     const [phaseTimeRemaining, setPhaseTimeRemaining] = useState<number>(0);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const [werewolfVoted, setWerewolfVoted] = useState<{ voterPseudo: string, votedPseudo: string }[]>([]);
+    const [dayVoted, setDayVoted] = useState<{ voterPseudo: string, votedPseudo: string }[]>([]);
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
         // Initialisation de la connexion WebSocket
         const connect = () => {
             ws.current = new WebSocket('ws://172.16.10.111:3000');
+            // ws.current = new WebSocket('ws://192.168.1.189:3000');
             // ws.current = new WebSocket('ws://172.20.10.2:3000');
 
             ws.current.onopen = () => {
@@ -95,17 +106,34 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setPlayers(data.players);
                         break;
                     case 'playersInGameUpdate':
+                        console.log("playersInGameUpdate", data);
                         setPlayersInGame(data.players);
+                        setCurrentPlayer(data.players.find((p:any) => p.pseudo === getPseudoLocale()));
                         break;
                     case 'init':
                         setPlayers(data.data.players);
                         setPlayersInGame(data.data.playersInGame);
                         setMessages(data.data.messages);
                         setGameCanStart(data.data.gameCanStart);
+                        setCurrentPhase(data.data.currentPhase);
+                        setPhaseTimeRemaining(data.data.phaseTimeRemaining);
+                        setWerewolfVoted(data.data.werewolfVotedArray);
+
+                        const role = data.data.playersInGame.find((p: any) => p.pseudo === getPseudoLocale())?.role || '';
+                        setRole(role);
+
                         break;
                     case 'welcome':
                         console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, { type: 'welcome', message: data.message }]);
+                        break;
+                    case 'infoNight':
+                        console.log(data.message);
+                        setMessages((prevMessages) => [...prevMessages, { type: 'infoNight', message: data.message }]);
+                        break;
+                    case 'infoDay':
+                        console.log(data.message);
+                        setMessages((prevMessages) => [...prevMessages, { type: 'infoDay', message: data.message }]);
                         break;
                     case 'error':
                         console.error(data.message);
@@ -119,10 +147,24 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, { type: 'gameStart', message: data.message }]);
                         break;
+                    case 'gameOver':
+                        console.log(data.message);
+                        setMessages((prevMessages) => [...prevMessages, { type: 'gameOver', message: data.message }]);
+                        break;
+                    case 'gameStopped':
+                        console.log(data.message);
+                        setMessages((prevMessages) => [...prevMessages, { type: 'gameStopped', message: data.message }]);
+                        break;
                     case 'gameCanStart':
                         console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, { type: 'gameCanStart', message: data.message }]);
                         setGameCanStart(true);
+                        break;
+                    case 'werewolfHasVoted':
+                        setWerewolfVoted(data.werewolfVotedArray);
+                        break;
+                    case 'dayHasVoted':
+                        setDayVoted(data.dayVotedArray);
                         break;
                     case 'general':
                         setMessages((prevMessages) => [...prevMessages, { type: 'general', message: data.message, sender: data.sender, role: data.role }]);
@@ -130,25 +172,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                     case 'phaseChange':
                         console.log("phaseChange", data);
                         setCurrentPhase(data.phase);
-                        setPhaseTimeRemaining(data.duration);
-                        
-                        // Gérer le compte à rebours
-                        if (timerRef.current) {
-                            clearInterval(timerRef.current);
-                        }
-                        
-                        const startTime = Date.now();
-                        timerRef.current = setInterval(() => {
-                            const elapsed = Date.now() - startTime;
-                            const remaining = data.duration - elapsed;
-                            
-                            if (remaining <= 0) {
-                                clearInterval(timerRef.current!);
-                                setPhaseTimeRemaining(0);
-                            } else {
-                                setPhaseTimeRemaining(remaining);
-                            }
-                        }, 1000);
+                        setPhaseTimeRemaining(data.timeRemaining);
+                        break;
+                    case 'timeUpdate':
+                        setPhaseTimeRemaining(data.timeRemaining);
                         break;
                     default:
                         console.log('Message reçu:', data);
@@ -178,9 +205,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 roleCounter++
             }
         });
-        
+
         if (playersInGame.length > 0 && roleCounter === playersInGame.length) {
-            setRolesDistributed(true);    
+            setRolesDistributed(true);
         }
     }, [playersInGame])
 
@@ -207,13 +234,28 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
     const startGame = () => {
         sendMessage('startGame', {});
-        // setCurrentPhase('night-werewolf');
-        // startNextPhase();
+    }
+
+    const voteWerewolf = (playerPseudo: string, voterPseudo: string) => {
+        const newArray = Array.isArray(werewolfVoted) ? [...werewolfVoted].filter(vote => vote.voterPseudo !== voterPseudo) : [];
+        newArray.push({ voterPseudo: voterPseudo, votedPseudo: playerPseudo });
+
+        setWerewolfVoted(newArray);
+        sendMessage('voteWerewolf', { werewolfVoted: newArray });
+    }
+
+    const voteDay = (playerPseudo: string, voterPseudo: string) => {
+        const newArray = Array.isArray(dayVoted) ? [...dayVoted].filter(vote => vote.voterPseudo !== voterPseudo) : [];
+        newArray.push({ voterPseudo: voterPseudo, votedPseudo: playerPseudo });
+
+        setDayVoted(newArray);
+        sendMessage('voteDay', { dayVoted: newArray });
     }
 
     return (
         <WebSocketContext.Provider
             value={{
+                currentPlayer,
                 sendMessage,
                 setPseudo,
                 isConnected,
@@ -228,6 +270,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 startGame,
                 currentPhase,
                 phaseTimeRemaining,
+                voteWerewolf,
+                werewolfVoted,
+                voteDay,
+                dayVoted
             }}
         >
             {children}

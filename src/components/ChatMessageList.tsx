@@ -9,7 +9,7 @@ export default function ChatMessageList() {
     <div className="w-full flex-1 overflow-y-auto py-2" ref={(el) => { if (el) el.scrollTop = el.scrollHeight; }}>
         {messages.filter(message => message.type !== 'error').map((message, index) => (
             <div key={index}>
-                <p><span className={cn("font-bold", role === 'loup' && message.role === 'loup' && "text-red-500")}>{message.sender || 'Système'}</span> : {message.message}</p>
+                <p><span className={cn("font-bold", (role === 'werewolf' && message.role === 'werewolf') && "text-red-500")}>{message.sender || 'Système'}</span> : {message.message}</p>
             </div>
         ))}
     </div>
