@@ -1,11 +1,12 @@
 import BoardGame from '@/components/BoardGame'
 import GameChat from '@/components/GameChat'
+import PseudoDialog from '@/components/PseudoDialog'
 import { useTheme } from '@/components/provider/ThemeProvider'
 import { useWebSocket } from '@/components/provider/WebSocketProvider'
-import PseudoDialog from '@/components/PseudoDialog'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import {Helmet} from "react-helmet";
 
 export const Route = createFileRoute('/werewolf/')({
   component: RouteComponent,
@@ -23,6 +24,10 @@ function RouteComponent() {
 
   return (
     <div className='w-full h-full'>
+      <Helmet>
+        <title>Axen - Loup-Garou</title>
+        <link rel="icon" type='image/png' href="logoWerewolf.png" sizes="24x24" />
+      </Helmet>
       {isConnected ? (
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel className='relative'>

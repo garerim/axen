@@ -48,10 +48,13 @@ export const GamesCard = (props: GamesCardProps) => {
 					</p>
 				</div>
 				<div
-					className={`flex justify-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+					className={`flex justify-center gap-2 ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
 				>
 					<Button onClick={() => navigate({to: link})} disabled={disabled} className="w-full">
 						Rejoindre
+					</Button>
+					<Button onClick={() => navigate({to: `${link}/rules`})} disabled={disabled}  className="w-full">
+						Règles
 					</Button>
 				</div>
 			</div>

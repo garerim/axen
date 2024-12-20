@@ -5,6 +5,7 @@ import { NavBar } from '@/components/NavBar/NavBar'
 import { useTheme } from "@/components/provider/ThemeProvider";
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { Helmet } from "react-helmet";
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -40,6 +41,10 @@ function RouteComponent() {
 
   return (
     <div>
+      <Helmet>
+        <title>Axen - Games</title>
+        <link rel="icon" type='image/png' href="logoAxenBase.png" sizes="24x24" />
+      </Helmet>
       <NavBar />
       <div className="flex p-3 gap-2">
         {GamesCardData.map((game, index) => (
