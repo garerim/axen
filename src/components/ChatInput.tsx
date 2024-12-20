@@ -27,7 +27,7 @@ export default function ChatInput() {
         setText('');
     };
 
-    const isDisabled = (currentPhase.includes('night') && role !== 'werewolf') || currentPlayer?.isAlive === false
+    const isDisabled = (currentPhase.includes('night')) || currentPlayer?.isAlive === false // && role !== 'werewolf'
 
     return (
         <form onSubmit={handleSubmit} className="w-full flex items-center gap-2">

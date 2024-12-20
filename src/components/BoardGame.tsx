@@ -33,7 +33,9 @@ export default function BoardGame() {
     dayVoted,
     seerHasFlipped,
     setSeerHasFlipped,
-    winner
+    winner,
+    resetGame,
+    canGameReset
   } = useWebSocket()
 
   useEffect(() => {
@@ -46,76 +48,76 @@ export default function BoardGame() {
 
   useEffect(() => {
     if (winner === "villager") {
-        const end = Date.now() + 3 * 1000; // 3 seconds
-        const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
-     
-        const frame = () => {
-          if (Date.now() > end) return;
-     
-          confetti({
-            particleCount: 2,
-            angle: 60,
-            spread: 55,
-            startVelocity: 60,
-            origin: { x: 0, y: 0.5 },
-            colors: colors,
-          });
-          confetti({
-            particleCount: 2,
-            angle: 120,
-            spread: 55,
-            startVelocity: 60,
-            origin: { x: 1, y: 0.5 },
-            colors: colors,
-          });
-     
-          requestAnimationFrame(frame);
-        };
-     
-        frame();
+      const end = Date.now() + 3 * 1000; // 3 seconds
+      const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+
+      const frame = () => {
+        if (Date.now() > end) return;
+
+        confetti({
+          particleCount: 2,
+          angle: 60,
+          spread: 55,
+          startVelocity: 60,
+          origin: { x: 0, y: 0.5 },
+          colors: colors,
+        });
+        confetti({
+          particleCount: 2,
+          angle: 120,
+          spread: 55,
+          startVelocity: 60,
+          origin: { x: 1, y: 0.5 },
+          colors: colors,
+        });
+
+        requestAnimationFrame(frame);
+      };
+
+      frame();
     } else if (winner === "werewolf") {
-        const scalar = 2;
-        const blood = confetti.shapeFromText({ text: "🩸", scalar });
-     
-        const defaults = {
-          spread: 360,
-          ticks: 60,
-          gravity: 0,
-          decay: 0.96,
-          startVelocity: 20,
-          shapes: [blood],
-          scalar,
-        };
-     
-        const shoot = () => {
-          confetti({
-            ...defaults,
-            particleCount: 30,
-          });
-     
-          confetti({
-            ...defaults,
-            particleCount: 5,
-          });
-     
-          confetti({
-            ...defaults,
-            particleCount: 15,
-            scalar: scalar / 2,
-          });
-        };
-     
-        setTimeout(shoot, 0);
-        setTimeout(shoot, 100);
-        setTimeout(shoot, 200);
-        setTimeout(shoot, 300);
-        setTimeout(shoot, 500);
+      const scalar = 2;
+      const blood = confetti.shapeFromText({ text: "🩸", scalar });
+
+      const defaults = {
+        spread: 360,
+        ticks: 60,
+        gravity: 0,
+        decay: 0.96,
+        startVelocity: 20,
+        shapes: [blood],
+        scalar,
+      };
+
+      const shoot = () => {
+        confetti({
+          ...defaults,
+          particleCount: 30,
+        });
+
+        confetti({
+          ...defaults,
+          particleCount: 5,
+        });
+
+        confetti({
+          ...defaults,
+          particleCount: 15,
+          scalar: scalar / 2,
+        });
+      };
+
+      setTimeout(shoot, 0);
+      setTimeout(shoot, 100);
+      setTimeout(shoot, 200);
+      setTimeout(shoot, 300);
+      setTimeout(shoot, 500);
     }
   }, [winner])
 
   const PhaseName = {
-    'night-seer': 'Nuit de la voyante',
-    'night-werewolf': 'Nuit des loups',
+    'night-seer': 'Tour de la voyante',
+    'night-werewolf': 'Tour des loups',
     'day-discussion': 'Discussion du jour',
     'day-vote': 'Vote du jour',
     'waiting': 'En attente des autres joueurs',
@@ -168,7 +170,7 @@ export default function BoardGame() {
 
   return (
     <div className={cn("w-full h-full")}>
-      <h1 className='text-2xl font-bold'>Werewolf</h1>
+      <h1 className='text-2xl text-center font-bold'><p>Phase : {PhaseName[currentPhase]}</p></h1>
       <PlayerList />
       {
         currentPhase === "waiting" ? (
@@ -192,9 +194,17 @@ export default function BoardGame() {
                     En attente des autres joueurs
                   </Button>
                 ) : (
-                  <Button onClick={joinGame} className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
-                    Joindre la partie
-                  </Button>
+                  <>
+                    {canGameReset ? (
+                      <Button onClick={resetGame} className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
+                        Recommencer la partie
+                      </Button>
+                    ) : (
+                      <Button onClick={joinGame} className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
+                        Joindre la partie
+                      </Button>
+                    )}
+                  </>
                 )
                 }
               </>
@@ -202,7 +212,6 @@ export default function BoardGame() {
           </>
         ) : (
           <div className="absolute w-full px-4 flex flex-col items-center gap-2 bottom-4 left-1/2 -translate-x-1/2">
-            <p>Phase : {PhaseName[currentPhase]}</p>
             <Progress value={phaseTimeRemaining * 100 / PHASE_DURATIONS[currentPhase]} />
           </div>
         )

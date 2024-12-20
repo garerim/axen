@@ -37,6 +37,8 @@ type WebSocketContextType = {
     seerHasFlipped: boolean;
     setSeerHasFlipped: (seerHasFlipped: boolean) => void;
     winner: string | null;
+    resetGame: () => void;
+    canGameReset: boolean;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -77,6 +79,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [dayVoted, setDayVoted] = useState<{ voterPseudo: string, votedPseudo: string }[]>([]);
     const [seerHasFlipped, setSeerHasFlipped] = useState(false);
     const [winner, setWinner] = useState<string | null>(null);
+    const [canGameReset, setCanGameReset] = useState(false);
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -114,7 +117,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                     case 'playersInGameUpdate':
                         console.log("playersInGameUpdate", data);
                         setPlayersInGame(data.players);
-                        setCurrentPlayer(data.players.find((p:any) => p.pseudo === getPseudoLocale()));
+                        setCurrentPlayer(data.players.find((p: any) => p.pseudo === getPseudoLocale()));
                         break;
                     case 'init':
                         setPlayers(data.data.players);
@@ -161,6 +164,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                     case 'gameStopped':
                         console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, { type: 'gameStopped', message: data.message }]);
+                        break;
+                    case 'resetGame':
+                        setCanGameReset(true);
                         break;
                     case 'gameCanStart':
                         console.log(data.message);
@@ -262,6 +268,22 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         sendMessage('voteDay', { dayVoted: newArray });
     }
 
+    const resetGame = () => {
+        setCurrentPlayer(null);
+        setRole(null);
+        setPlayersInGame([]);
+        setMessages([]);
+        setGameCanStart(false);
+        setRolesDistributed(false);
+        setCurrentPhase('waiting');
+        setPhaseTimeRemaining(0);
+        setWerewolfVoted([]);
+        setDayVoted([]);
+        setSeerHasFlipped(false);
+        setWinner(null);
+        setCanGameReset(false);
+    }
+
     return (
         <WebSocketContext.Provider
             value={{
@@ -287,6 +309,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 seerHasFlipped,
                 setSeerHasFlipped,
                 winner,
+                resetGame,
+                canGameReset,
             }}
         >
             {children}
