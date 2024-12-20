@@ -6,6 +6,7 @@ export interface WerewolfCardProps {
   className?: string;
   role: WerewolfRole;
   isFlipped?: boolean;
+  isAlive?: boolean;
   isMayor?: boolean;
   flipCard?: (value: boolean) => void;
 }

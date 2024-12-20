@@ -6,6 +6,7 @@ import { routeTree } from './routeTree.gen';
 
 import "./index.css";
 import { WebSocketProvider } from './components/provider/WebSocketProvider';
+import { ThemeProvider } from './components/provider/ThemeProvider';
 
 // Create a new router instance
 const router = createRouter({ routeTree })
@@ -22,10 +23,12 @@ const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
-    <WebSocketProvider>
-      <div className='w-full h-screen'>
-        <RouterProvider router={router} />
-      </div>
-    </WebSocketProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <WebSocketProvider>
+        <div className='w-full h-screen'>
+          <RouterProvider router={router} />
+        </div>
+      </WebSocketProvider>
+    </ThemeProvider>
   )
 }
