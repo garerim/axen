@@ -10,10 +10,6 @@ import confetti from "canvas-confetti";
 import { Heart, Skull, Triangle } from "lucide-react"
 
 import { useEffect, useState } from "react"
-import { useTheme } from "@/components/provider/ThemeProvider"
-import { Progress } from "@/components/ui/progress"
-import { WerewolfRole } from "@/components/Werewolf/WerewolfCard/types"
-import { WerewolfCard } from "@/components/Werewolf/WerewolfCard/WerewolfCard"
 
 export default function BoardGame() {
 
