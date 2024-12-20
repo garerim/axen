@@ -85,7 +85,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     useEffect(() => {
         // Initialisation de la connexion WebSocket
         const connect = () => {
-            ws.current = new WebSocket('ws://172.16.10.111:3000');
+            ws.current = new WebSocket('https://loup-garou-backend.onrender.com');
             // ws.current = new WebSocket('ws://192.168.1.189:3000');
             // ws.current = new WebSocket('ws://172.20.10.2:3000');
 
