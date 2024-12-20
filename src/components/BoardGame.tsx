@@ -8,11 +8,17 @@ import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import confetti from "canvas-confetti";
 import { Heart, Skull, Triangle } from "lucide-react"
-import { useEffect } from "react"
+
+import { useEffect, useState } from "react"
+import { useTheme } from "@/components/provider/ThemeProvider"
+import { Progress } from "@/components/ui/progress"
+import { WerewolfRole } from "@/components/Werewolf/WerewolfCard/types"
+import { WerewolfCard } from "@/components/Werewolf/WerewolfCard/WerewolfCard"
 
 export default function BoardGame() {
 
-  const { setTheme } = useTheme()
+  const { setTheme } = useTheme();
+  const [seerFlip, setSeerFlip] = useState<string>("");
 
   const {
     currentPlayer,
@@ -29,6 +35,8 @@ export default function BoardGame() {
     werewolfVoted,
     voteDay,
     dayVoted,
+    seerHasFlipped,
+    setSeerHasFlipped,
     winner
   } = useWebSocket()
 
@@ -80,8 +88,13 @@ export default function BoardGame() {
     'waiting': 'En attente des autres joueurs',
   }
 
-  const isCardFlipped = (player: Player) => {
+  const isCardFlipped = (player: Player, flip: boolean = false) => {
     let res = true;
+
+    if (flip) {
+      return true;
+    }
+
     if (player.pseudo === getPseudoLocale()) {
       res = false;
     }
@@ -100,9 +113,25 @@ export default function BoardGame() {
   const canDayVote = () => {
     return currentPhase === "day-vote" && currentPlayer?.isAlive;
   }
-  const conSeerFlipCard = () => {
-    return currentPhase === PhaseName['night-seer'] && role === 'seer' && currentPlayer?.isAlive;
+
+  const canSeerFlipCard = () => {
+    return currentPhase === "night-seer" && role === 'seer' && currentPlayer?.isAlive && !seerHasFlipped;
   }
+
+  const seerFlipCard = (player: Player) => {
+    if (player.pseudo !== currentPlayer?.pseudo) {
+      setSeerFlip(player.pseudo)
+      setSeerHasFlipped(true)
+    }
+  }
+
+  useEffect(() => {
+    if (seerFlip !== "") {
+      setTimeout(() => {
+        setSeerFlip("")
+      }, 2000)
+    }
+  }, [seerFlip])
 
   return (
     <div className={cn("w-full h-full")}>
@@ -148,7 +177,7 @@ export default function BoardGame() {
 
       <div className=" w-full h-4/5 flex items-center justify-center flex-wrap gap-4">
         {playersInGame.map((player) => (
-          <div className="relative flex flex-col items-center" key={player.id} onClick={canWerewolfVote() && player.isAlive ? () => voteWerewolf(player.pseudo, getPseudoLocale() ?? "") : canDayVote() ? () => voteDay(player.pseudo, getPseudoLocale() ?? "") : conSeerFlipCard() ? () => {} : undefined}>
+          <div className="relative flex flex-col items-center" key={player.id} onClick={canWerewolfVote() && player.isAlive ? () => voteWerewolf(player.pseudo, getPseudoLocale() ?? "") : canDayVote() ? () => voteDay(player.pseudo, getPseudoLocale() ?? "") : canSeerFlipCard() ? () => seerFlipCard(player) : undefined}>
 
             {werewolfVoted.find(vote => vote.votedPseudo === player.pseudo && vote.voterPseudo === currentPlayer?.pseudo) !== undefined && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 rotate-180">
@@ -169,7 +198,7 @@ export default function BoardGame() {
             {(role === 'werewolf' && currentPhase === "night-werewolf") && werewolfVoted.filter(vote => vote.votedPseudo === player.pseudo).length}
             {currentPhase === "day-vote" && dayVoted.filter(vote => vote.votedPseudo === player.pseudo).length}
 
-            <WerewolfCard role={player.role as WerewolfRole} isFlipped={isCardFlipped(player)} isAlive={player.isAlive} className="w-48 h-48" />
+            <WerewolfCard role={player.role as WerewolfRole} isFlipped={seerFlip === player.pseudo ? false : isCardFlipped(player)} isAlive={player.isAlive} className="w-48 h-48" />
           </div>
         ))}
       </div>

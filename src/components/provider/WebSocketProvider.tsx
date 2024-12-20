@@ -11,7 +11,7 @@ export type Player = {
     isMayor?: boolean;
 };
 
-type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote';
+type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote' | 'night-seer';
 
 type WebSocketContextType = {
     currentPlayer: Player | null;
@@ -34,6 +34,8 @@ type WebSocketContextType = {
     werewolfVoted: { voterPseudo: string, votedPseudo: string }[];
     voteDay: (playerPseudo: string, voterPseudo: string) => void;
     dayVoted: { voterPseudo: string, votedPseudo: string }[];
+    seerHasFlipped: boolean;
+    setSeerHasFlipped: (seerHasFlipped: boolean) => void;
     winner: string | null;
 };
 
@@ -73,6 +75,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [phaseTimeRemaining, setPhaseTimeRemaining] = useState<number>(0);
     const [werewolfVoted, setWerewolfVoted] = useState<{ voterPseudo: string, votedPseudo: string }[]>([]);
     const [dayVoted, setDayVoted] = useState<{ voterPseudo: string, votedPseudo: string }[]>([]);
+    const [seerHasFlipped, setSeerHasFlipped] = useState(false);
     const [winner, setWinner] = useState<string | null>(null);
     const ws = useRef<WebSocket | null>(null);
 
@@ -176,6 +179,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                     case 'phaseChange':
                         console.log("phaseChange", data);
                         setCurrentPhase(data.phase);
+                        if (data.phase === 'night-seer') {
+                            setSeerHasFlipped(false);
+                        }
                         setPhaseTimeRemaining(data.timeRemaining);
                         break;
                     case 'timeUpdate':
@@ -278,6 +284,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 werewolfVoted,
                 voteDay,
                 dayVoted,
+                seerHasFlipped,
+                setSeerHasFlipped,
                 winner,
             }}
         >
