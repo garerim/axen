@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState, createContext, useContext } from 'react';
+import { ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react';
 
 interface WebSocketProviderProps {
     children: ReactNode;
@@ -34,6 +34,7 @@ type WebSocketContextType = {
     werewolfVoted: { voterPseudo: string, votedPseudo: string }[];
     voteDay: (playerPseudo: string, voterPseudo: string) => void;
     dayVoted: { voterPseudo: string, votedPseudo: string }[];
+    winner: string | null;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -72,6 +73,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [phaseTimeRemaining, setPhaseTimeRemaining] = useState<number>(0);
     const [werewolfVoted, setWerewolfVoted] = useState<{ voterPseudo: string, votedPseudo: string }[]>([]);
     const [dayVoted, setDayVoted] = useState<{ voterPseudo: string, votedPseudo: string }[]>([]);
+    const [winner, setWinner] = useState<string | null>(null);
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -151,6 +153,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                     case 'gameOver':
                         console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, { type: 'gameOver', message: data.message }]);
+                        setWinner(data.winner);
                         break;
                     case 'gameStopped':
                         console.log(data.message);
@@ -274,7 +277,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 voteWerewolf,
                 werewolfVoted,
                 voteDay,
-                dayVoted
+                dayVoted,
+                winner,
             }}
         >
             {children}

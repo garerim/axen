@@ -2,7 +2,6 @@ export type WerewolfRole = "werewolf" | "villager" | "hunter" | "witch" | "seer"
 
 export interface WerewolfCardProps {
   role: WerewolfRole;
-  isAlive?: boolean;
   isFlipped?: boolean;
   isAlive?: boolean;
   isMayor?: boolean;
