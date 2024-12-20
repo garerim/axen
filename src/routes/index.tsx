@@ -2,7 +2,9 @@ import bombeParty from "@/assets/bombeParty.png";
 import posterBackGround from "@/assets/werewolf/backGround.png";
 import { GamesCard, type GamesCardProps } from '@/components/GamesCard/GamesCard'
 import { NavBar } from '@/components/NavBar/NavBar'
+import { useTheme } from "@/components/provider/ThemeProvider";
 import { createFileRoute } from '@tanstack/react-router'
+import { useEffect } from 'react'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -29,6 +31,13 @@ const GamesCardData: GamesCardProps[] = [
 ]
 
 function RouteComponent() {
+
+  const { setTheme } = useTheme()
+
+  useEffect(() => {
+    setTheme("light")
+  }, [])
+
   return (
     <div>
       <NavBar />

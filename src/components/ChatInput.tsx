@@ -5,14 +5,14 @@ import { getPseudoLocale, useWebSocket } from "./provider/WebSocketProvider";
 import { useState } from "react";
 
 export default function ChatInput() {
-    const { sendMessage, role } = useWebSocket()
+    const { sendMessage, role, currentPhase, currentPlayer } = useWebSocket()
 
     const [text, setText] = useState<string>('')
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!text.trim()) return;
-        
+
         const messageData = {
             type: 'message',
             data: {
@@ -22,17 +22,19 @@ export default function ChatInput() {
                 role: role
             }
         };
-        
+
         sendMessage(messageData.type, messageData.data);
         setText('');
     };
 
-  return (
-    <form onSubmit={handleSubmit} className="w-full flex items-center gap-2">
-        <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Tapez un message..." />
-        <Button className="bg-green-500 hover:bg-green-600">
-            <Send />
-        </Button>
-    </form>
-  )
+    const isDisabled = (currentPhase.includes('night') && role !== 'werewolf') || currentPlayer?.isAlive === false
+
+    return (
+        <form onSubmit={handleSubmit} className="w-full flex items-center gap-2">
+            <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Tapez un message..." disabled={isDisabled} />
+            <Button className="bg-green-500 hover:bg-green-600" disabled={isDisabled}>
+                <Send />
+            </Button>
+        </form>
+    )
 }

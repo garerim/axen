@@ -7,7 +7,7 @@ export default function PlayerList() {
     const { playersInGame } = useWebSocket()
 
     return (
-        <Card className="w-fit h-auto absolute top-1 right-1 m-2">
+        <Card className="w-fit h-auto absolute top-1 right-1 m-2 shadow-md">
             <CardHeader>
                 <CardTitle>Liste des joueurs</CardTitle>
             </CardHeader>
