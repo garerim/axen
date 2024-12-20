@@ -1,8 +1,14 @@
 import PlayerList from "@/components/PlayerList"
-import { getPseudoLocale, PHASE_DURATIONS, Player, useWebSocket } from "@/components/provider/WebSocketProvider"
+import { WerewolfCard } from "@/components/Werewolf/WerewolfCard/WerewolfCard"
+import { WerewolfRole } from "@/components/Werewolf/WerewolfCard/types"
+import { useTheme } from "@/components/provider/ThemeProvider"
+import { PHASE_DURATIONS, Player, getPseudoLocale, useWebSocket } from "@/components/provider/WebSocketProvider"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
+import confetti from "canvas-confetti";
 import { Heart, Skull, Triangle } from "lucide-react"
+
 import { useEffect, useState } from "react"
 import { useTheme } from "@/components/provider/ThemeProvider"
 import { Progress } from "@/components/ui/progress"
@@ -30,7 +36,8 @@ export default function BoardGame() {
     voteDay,
     dayVoted,
     seerHasFlipped,
-    setSeerHasFlipped
+    setSeerHasFlipped,
+    winner
   } = useWebSocket()
 
   useEffect(() => {
@@ -40,6 +47,38 @@ export default function BoardGame() {
       setTheme("day")
     }
   }, [currentPhase])
+
+  useEffect(() => {
+    if (winner === "villager") {
+        const end = Date.now() + 3 * 1000; // 3 seconds
+        const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+     
+        const frame = () => {
+          if (Date.now() > end) return;
+     
+          confetti({
+            particleCount: 2,
+            angle: 60,
+            spread: 55,
+            startVelocity: 60,
+            origin: { x: 0, y: 0.5 },
+            colors: colors,
+          });
+          confetti({
+            particleCount: 2,
+            angle: 120,
+            spread: 55,
+            startVelocity: 60,
+            origin: { x: 1, y: 0.5 },
+            colors: colors,
+          });
+     
+          requestAnimationFrame(frame);
+        };
+     
+        frame();
+    }
+  }, [winner])
 
   const PhaseName = {
     'night-seer': 'Nuit de la voyante',

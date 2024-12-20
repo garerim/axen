@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState, createContext, useContext } from 'react';
+import { ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react';
 
 interface WebSocketProviderProps {
     children: ReactNode;
@@ -286,7 +286,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 dayVoted,
                 seerHasFlipped,
                 setSeerHasFlipped,
-                winner
+                winner,
             }}
         >
             {children}
