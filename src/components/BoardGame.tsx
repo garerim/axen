@@ -31,7 +31,7 @@ export default function BoardGame() {
   } = useWebSocket()
 
   useEffect(() => {
-    if (currentPhase === "night-werewolf") {
+    if (currentPhase.includes('night')) {
       setTheme("night")
     } else {
       setTheme("day")
@@ -39,6 +39,7 @@ export default function BoardGame() {
   }, [currentPhase])
 
   const PhaseName = {
+    'night-seer': 'Nuit de la voyante',
     'night-werewolf': 'Nuit des loups',
     'day-discussion': 'Discussion du jour',
     'day-vote': 'Vote du jour',
@@ -64,6 +65,9 @@ export default function BoardGame() {
 
   const canDayVote = () => {
     return currentPhase === "day-vote" && currentPlayer?.isAlive;
+  }
+  const conSeerFlipCard = () => {
+    return currentPhase === PhaseName['night-seer'] && role === 'seer' && currentPlayer?.isAlive;
   }
 
   return (
@@ -110,7 +114,7 @@ export default function BoardGame() {
 
       <div className=" w-full h-4/5 flex items-center justify-center flex-wrap gap-4">
         {playersInGame.map((player) => (
-          <div className="relative flex flex-col items-center" key={player.id} onClick={canWerewolfVote() && player.isAlive ? () => voteWerewolf(player.pseudo, getPseudoLocale() ?? "") : canDayVote() ? () => voteDay(player.pseudo, getPseudoLocale() ?? "") : undefined}>
+          <div className="relative flex flex-col items-center" key={player.id} onClick={canWerewolfVote() && player.isAlive ? () => voteWerewolf(player.pseudo, getPseudoLocale() ?? "") : canDayVote() ? () => voteDay(player.pseudo, getPseudoLocale() ?? "") : conSeerFlipCard() ? () => {} : undefined}>
 
             {werewolfVoted.find(vote => vote.votedPseudo === player.pseudo && vote.voterPseudo === currentPlayer?.pseudo) !== undefined && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 rotate-180">

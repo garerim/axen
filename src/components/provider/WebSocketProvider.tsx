@@ -39,6 +39,7 @@ type WebSocketContextType = {
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
 export const PHASE_DURATIONS = {
+    'night-seer': 20000,        // 20 secondes pour le seer
     'night-werewolf': 30000,    // 30 secondes pour les loups
     'day-discussion': 120000,   // 2 minutes de discussion
     'day-vote': 30000,          // 30 secondes pour voter
