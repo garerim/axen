@@ -3,6 +3,8 @@ import posterBackGround from "@/assets/werewolf/backGround.png";
 import { GamesCard, type GamesCardProps } from '@/components/GamesCard/GamesCard'
 import { NavBar } from '@/components/NavBar/NavBar'
 import { useTheme } from "@/components/provider/ThemeProvider";
+import { useWebSocket } from "@/components/provider/WebSocketProvider";
+import PseudoDialog from "@/components/PseudoDialog";
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { Helmet } from "react-helmet";
@@ -33,6 +35,8 @@ const GamesCardData: GamesCardProps[] = [
 
 function RouteComponent() {
 
+  const { isConnected } = useWebSocket()
+
   const { setTheme } = useTheme()
 
   useEffect(() => {
@@ -45,12 +49,19 @@ function RouteComponent() {
         <title>Axen - Games</title>
         <link rel="icon" type='image/png' href="logoAxenBase.png" sizes="24x24" />
       </Helmet>
-      <NavBar />
-      <div className="flex p-3 gap-2">
-        {GamesCardData.map((game, index) => (
-          <GamesCard key={index.toString()} {...game} />
-        ))}
-      </div>
+
+      {isConnected ? (
+        <>
+          <NavBar />
+          <div className="flex p-3 gap-2">
+            {GamesCardData.map((game, index) => (
+              <GamesCard key={index.toString()} {...game} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <PseudoDialog />
+      )}
     </div>
   )
 }

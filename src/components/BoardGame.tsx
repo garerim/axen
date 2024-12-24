@@ -35,7 +35,8 @@ export default function BoardGame() {
     setSeerHasFlipped,
     winner,
     resetGame,
-    canGameReset
+    canGameReset,
+    sendMessage
   } = useWebSocket()
 
   useEffect(() => {
@@ -126,9 +127,14 @@ export default function BoardGame() {
   const isCardFlipped = (player: Player, flip: boolean = false) => {
     let res = true;
 
+    if (!player.isAlive) {
+      return false;
+    }
+
     if (flip) {
       return true;
     }
+
 
     if (player.pseudo === getPseudoLocale()) {
       res = false;
@@ -138,6 +144,8 @@ export default function BoardGame() {
         res = false;
       }
     }
+
+
     return res;
   }
 
@@ -160,6 +168,13 @@ export default function BoardGame() {
     }
   }
 
+  const leaveGame = () => {
+    sendMessage("leaveGame", {
+      pseudo: currentPlayer?.pseudo,
+      roleDistributed: rolesDistributed,
+    })
+  }
+
   useEffect(() => {
     if (seerFlip !== "") {
       setTimeout(() => {
@@ -174,33 +189,61 @@ export default function BoardGame() {
       <PlayerList />
       {
         currentPhase === "waiting" ? (
-          <>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             {gameCanStart ? (
               <>
                 {rolesDistributed ? (
-                  <Button onClick={startGame} className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
-                    Lancer la partie
-                  </Button>
+                  <>
+                    {rolesDistributed}
+                    {playersInGame.length > 0 && currentPlayer?.pseudo === playersInGame[0].pseudo ? (
+                      <Button onClick={startGame} >
+                        Lancer la partie
+                      </Button>
+                    ) : (
+                      <Button disabled >
+                        En attente du créateur de la partie
+                      </Button>
+                    )}
+                    <Button onClick={() => leaveGame()}>
+                      Quitter la partie
+                    </Button>
+                  </>
                 ) : (
-                  <Button onClick={distributeRoles} className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
-                    Distribuer les rôles
-                  </Button>
+                  <>
+                    {playersInGame.length > 0 && currentPlayer?.pseudo === playersInGame[0].pseudo ? (
+                      <Button onClick={distributeRoles} >
+                        Distribuer les rôles {rolesDistributed}
+                      </Button>
+                    ) : (
+                      <Button disabled >
+                        En attente du créateur de la partie
+                      </Button>
+                    )}
+                    <Button onClick={() => leaveGame()}>
+                      Quitter la partie
+                    </Button>
+                  </>
                 )}
               </>
             ) : (
               <>
                 {playersInGame.find(p => p.pseudo === getPseudoLocale()) !== undefined ? (
-                  <Button disabled className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
-                    En attente des autres joueurs
-                  </Button>
+                  <>
+                    <Button disabled >
+                      En attente des autres joueurs
+                    </Button>
+                    <Button onClick={() => leaveGame()}>
+                      Quitter la partie
+                    </Button>
+                  </>
                 ) : (
                   <>
                     {canGameReset ? (
-                      <Button onClick={resetGame} className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
+                      <Button onClick={resetGame} >
                         Recommencer la partie
                       </Button>
                     ) : (
-                      <Button onClick={joinGame} className='absolute bottom-4 left-1/2 -translate-x-1/2 '>
+                      <Button onClick={joinGame} >
                         Joindre la partie
                       </Button>
                     )}
@@ -209,7 +252,7 @@ export default function BoardGame() {
                 }
               </>
             )}
-          </>
+          </div>
         ) : (
           <div className="absolute w-full px-4 flex flex-col items-center gap-2 bottom-4 left-1/2 -translate-x-1/2">
             <Progress value={phaseTimeRemaining * 100 / PHASE_DURATIONS[currentPhase]} />
@@ -234,7 +277,7 @@ export default function BoardGame() {
             )}
 
             <div className="flex items-center gap-2 justify-center">
-              {player.pseudo} {player.isAlive ? <Heart fill="red" className="w-4 h-4 text-red-500" /> : <Skull className="w-4 h-4" />}
+              {player.pseudo} {JSON.stringify(isCardFlipped(player))} {player.isAlive ? <Heart fill="red" className="w-4 h-4 text-red-500" /> : <Skull className="w-4 h-4" />}
             </div>
 
             {(role === 'werewolf' && currentPhase === "night-werewolf") && werewolfVoted.filter(vote => vote.votedPseudo === player.pseudo).length}

@@ -27,7 +27,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 		>
 			<div
 				className={`relative w-full h-full transition-transform duration-700 transform-style-3d ${
-					isFlipped || !isAlive ? "rotate-y-180" : ""
+					isFlipped ? "rotate-y-180" : ""
 				}`}
 			>
 				{/* Front de la carte */}

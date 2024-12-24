@@ -85,9 +85,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     useEffect(() => {
         // Initialisation de la connexion WebSocket
         const connect = () => {
-            ws.current = new WebSocket('https://loup-garou-backend.onrender.com');
+            // ws.current = new WebSocket('https://loup-garou-backend.onrender.com'); // Serveur en ligne
             // ws.current = new WebSocket('ws://192.168.1.189:3000');
             // ws.current = new WebSocket('ws://172.20.10.2:3000');
+            ws.current = new WebSocket('ws://192.168.1.31:3000');
 
             ws.current.onopen = () => {
                 console.log('Connecté au serveur WebSocket');
@@ -224,6 +225,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
         if (playersInGame.length > 0 && roleCounter === playersInGame.length) {
             setRolesDistributed(true);
+        } else {
+            setRolesDistributed(false);
+            setGameCanStart(false);
         }
     }, [playersInGame])
 

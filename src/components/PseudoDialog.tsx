@@ -8,15 +8,30 @@ import { setPseudoLocale, useWebSocket } from "./provider/WebSocketProvider"
 const PseudoDialog = () => {
   const [pseudo, setPseudo] = useState("")
   const [isOpen, setIsOpen] = useState(true)
+  const [error, setError] = useState("")
 
-  const { sendMessage } = useWebSocket()
+  const { sendMessage, players } = useWebSocket()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Pseudo submitted:", pseudo)
-    sendMessage("setPseudo", pseudo)
-    setPseudoLocale(pseudo)
+    
+    if (players.find(player => player.pseudo === pseudo.trim())) {
+      setError("Ce pseudo est déjà utilisé.");
+      setPseudo("");
+      return
+    }
+    
+    if (pseudo.trim().length < 3) {
+      setError("Le pseudo doit contenir au moins 3 caractères.");
+      setPseudo("");
+      return
+    }
+
+    const trimmedPseudo = pseudo.trim();
+    sendMessage("setPseudo", trimmedPseudo)
+    setPseudoLocale(trimmedPseudo)
     setIsOpen(false)
+    window.location.reload();
   }
 
   return (
@@ -36,6 +51,7 @@ const PseudoDialog = () => {
           <Button type="submit" className="w-full">
             Valider
           </Button>
+          {error && <p className="text-red-500">{error}</p>}
         </form>
       </DialogContent>
     </Dialog>

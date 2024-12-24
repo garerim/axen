@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import type { NavItems } from "./type"
+import UserButton from './UserButton'
 
 export const NavBar = () => {
 
@@ -22,6 +23,7 @@ export const NavBar = () => {
                     )
             })
             }
+            <UserButton />
         </nav>
     )
 }
