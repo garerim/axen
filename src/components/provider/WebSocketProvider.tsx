@@ -11,7 +11,7 @@ export type Player = {
     isMayor?: boolean;
 };
 
-type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote' | 'night-seer';
+type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote' | 'night-seer' | 'hunter-phase-1' | 'hunter-phase-2';
 
 type WebSocketContextType = {
     currentPlayer: Player | null;
@@ -26,6 +26,7 @@ type WebSocketContextType = {
     role: string | null;
     rolesDistributed: boolean;
     gameCanStart: boolean;
+    gameStopped: boolean;
     distributeRoles: () => void;
     startGame: () => void;
     currentPhase: Phase;
@@ -39,6 +40,8 @@ type WebSocketContextType = {
     winner: string | null;
     resetGame: () => void;
     canGameReset: boolean;
+    hunterKill: (player: Player) => void;
+    hunterHasKill: boolean;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -48,6 +51,8 @@ export const PHASE_DURATIONS = {
     'night-werewolf': 30000,    // 30 secondes pour les loups
     'day-discussion': 120000,   // 2 minutes de discussion
     'day-vote': 30000,          // 30 secondes pour voter
+    'hunter-phase-1': 10000,    // 10 secondes pour le hunter
+    'hunter-phase-2': 10000,    // 10 secondes pour le hunter
 };
 
 export const useWebSocket = () => {
@@ -72,6 +77,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [messages, setMessages] = useState<Array<{ type: string; message: string; sender?: string; role?: string }>>([]);
     const [role, setRole] = useState<string | null>(null);
     const [gameCanStart, setGameCanStart] = useState(false);
+    const [gameStopped, setGameStopped] = useState(false);
     const [rolesDistributed, setRolesDistributed] = useState(false);
     const [currentPhase, setCurrentPhase] = useState<Phase>('waiting');
     const [phaseTimeRemaining, setPhaseTimeRemaining] = useState<number>(0);
@@ -80,6 +86,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [seerHasFlipped, setSeerHasFlipped] = useState(false);
     const [winner, setWinner] = useState<string | null>(null);
     const [canGameReset, setCanGameReset] = useState(false);
+    const [hunterHasKill, setHunterHasKill] = useState(false);
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -88,7 +95,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             // ws.current = new WebSocket('https://loup-garou-backend.onrender.com'); // Serveur en ligne
             // ws.current = new WebSocket('ws://192.168.1.189:3000');
             // ws.current = new WebSocket('ws://172.20.10.2:3000');
-            ws.current = new WebSocket('ws://192.168.1.31:3000');
+            // ws.current = new WebSocket('ws://192.168.1.31:3000');
+            ws.current = new WebSocket('ws://172.16.10.97:3000');
+
 
             ws.current.onopen = () => {
                 console.log('Connecté au serveur WebSocket');
@@ -164,6 +173,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         break;
                     case 'gameStopped':
                         console.log(data.message);
+                        setGameStopped(true);
+                        setCurrentPhase('waiting');
+                        setRolesDistributed(false);
+                        setGameCanStart(false);
                         setMessages((prevMessages) => [...prevMessages, { type: 'gameStopped', message: data.message }]);
                         break;
                     case 'resetGame':
@@ -171,14 +184,21 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         break;
                     case 'gameCanStart':
                         console.log(data.message);
+                        console.log("uhqvkzqduhyzvqduyvqzdyq");
                         setMessages((prevMessages) => [...prevMessages, { type: 'gameCanStart', message: data.message }]);
                         setGameCanStart(true);
+                        break;
+                    case 'gameCantStart':
+                        setGameCanStart(false);
                         break;
                     case 'werewolfHasVoted':
                         setWerewolfVoted(data.werewolfVotedArray);
                         break;
                     case 'dayHasVoted':
                         setDayVoted(data.dayVotedArray);
+                        break;
+                    case 'hunterHasKill':
+                        setHunterHasKill(true);
                         break;
                     case 'general':
                         setMessages((prevMessages) => [...prevMessages, { type: 'general', message: data.message, sender: data.sender, role: data.role }]);
@@ -227,7 +247,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             setRolesDistributed(true);
         } else {
             setRolesDistributed(false);
-            setGameCanStart(false);
+            // setGameCanStart(false);
         }
     }, [playersInGame])
 
@@ -272,12 +292,18 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         sendMessage('voteDay', { dayVoted: newArray });
     }
 
+    const hunterKill = (player: Player) => {
+        setHunterHasKill(true);
+        sendMessage('hunterKill', { hunterPseudo: currentPlayer?.pseudo, playerPseudo: player.pseudo });
+    }
+
     const resetGame = () => {
         setCurrentPlayer(null);
         setRole(null);
         setPlayersInGame([]);
         setMessages([]);
         setGameCanStart(false);
+        setGameStopped(false);
         setRolesDistributed(false);
         setCurrentPhase('waiting');
         setPhaseTimeRemaining(0);
@@ -286,6 +312,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         setSeerHasFlipped(false);
         setWinner(null);
         setCanGameReset(false);
+        setHunterHasKill(false);
     }
 
     return (
@@ -299,6 +326,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 messages,
                 role,
                 gameCanStart,
+                gameStopped,
                 playersInGame,
                 joinGame,
                 distributeRoles,
@@ -315,6 +343,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 winner,
                 resetGame,
                 canGameReset,
+                hunterKill,
+                hunterHasKill,
             }}
         >
             {children}

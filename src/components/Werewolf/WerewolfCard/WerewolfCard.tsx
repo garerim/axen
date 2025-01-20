@@ -22,7 +22,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
 		<div
-			className={`relative w-64 h-64 cursor-pointer perspective-1000 shadow-lg ${!isAlive && "grayscale"} ${className}`}
+			className={`relative w-64 cursor-pointer perspective-1000 shadow-lg ${!isAlive && "grayscale"} ${className}`}
 			onClick={handleClick}
 		>
 			<div
@@ -32,7 +32,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 			>
 				{/* Front de la carte */}
 				<div className="absolute w-full backface-hidden">
-					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-3">
+					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-2">
 						<RoleImage role={role} />
 						{isMayor && <MayorBadge />}
 					</div>
@@ -40,7 +40,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 
 				{/* Dos de la carte */}
 				<div className="absolute w-full backface-hidden rotate-y-180">
-					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-3">
+					<div className="w-full h-full bg-blue-950 rounded-lg shadow-lg p-2">
 						<img src={backCardImage} alt="backCard" />
 						{isMayor && <MayorBadge />}
 					</div>

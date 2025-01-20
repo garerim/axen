@@ -29,7 +29,7 @@ function RouteComponent() {
           <BoardGame />
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel maxSize={35} minSize={20}>
+        <ResizablePanel maxSize={30} minSize={20} defaultSize={20}>
           <GameChat />
         </ResizablePanel>
       </ResizablePanelGroup>

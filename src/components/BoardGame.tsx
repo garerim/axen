@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import confetti from "canvas-confetti";
-import { Heart, Skull, Triangle } from "lucide-react"
+import { ChevronLeft, Heart, Skull, Triangle } from "lucide-react"
 
 import { useEffect, useState } from "react"
 
@@ -19,6 +19,7 @@ export default function BoardGame() {
   const {
     currentPlayer,
     gameCanStart,
+    gameStopped,
     role,
     joinGame,
     playersInGame,
@@ -36,7 +37,9 @@ export default function BoardGame() {
     winner,
     resetGame,
     canGameReset,
-    sendMessage
+    sendMessage,
+    hunterKill,
+    hunterHasKill
   } = useWebSocket()
 
   useEffect(() => {
@@ -122,19 +125,16 @@ export default function BoardGame() {
     'day-discussion': 'Discussion du jour',
     'day-vote': 'Vote du jour',
     'waiting': 'En attente des autres joueurs',
+    'hunter-phase-1': 'Phase du chasseur',
+    'hunter-phase-2': 'Phase du chasseur',
   }
 
-  const isCardFlipped = (player: Player, flip: boolean = false) => {
+  const isCardFlipped = (player: Player) => {
     let res = true;
 
     if (!player.isAlive) {
       return false;
     }
-
-    if (flip) {
-      return true;
-    }
-
 
     if (player.pseudo === getPseudoLocale()) {
       res = false;
@@ -161,6 +161,10 @@ export default function BoardGame() {
     return currentPhase === "night-seer" && role === 'seer' && currentPlayer?.isAlive && !seerHasFlipped;
   }
 
+  const canHunterKill = () => {
+    return (currentPhase === "hunter-phase-1" || currentPhase === "hunter-phase-2") && role === 'hunter' && !currentPlayer?.isAlive && !hunterHasKill;
+  }
+
   const seerFlipCard = (player: Player) => {
     if (player.pseudo !== currentPlayer?.pseudo) {
       setSeerFlip(player.pseudo)
@@ -183,9 +187,21 @@ export default function BoardGame() {
     }
   }, [seerFlip])
 
+  const getCardSize = (playerCount: number) => {
+    if (playerCount <= 6) return "w-[210px]";
+    if (playerCount <= 8) return "w-[180px]";
+    if (playerCount <= 10) return "w-[150px]";
+    return "w-[120px]";
+  }
+
   return (
     <div className={cn("w-full h-full")}>
       <h1 className='text-2xl text-center font-bold'><p>Phase : {PhaseName[currentPhase]}</p></h1>
+      <a href="/" className="absolute top-4 left-4">
+        <Button>
+          <ChevronLeft className="w-6 h-6" />
+        </Button>
+      </a>
       <PlayerList />
       {
         currentPhase === "waiting" ? (
@@ -194,8 +210,7 @@ export default function BoardGame() {
               <>
                 {rolesDistributed ? (
                   <>
-                    {rolesDistributed}
-                    {playersInGame.length > 0 && currentPlayer?.pseudo === playersInGame[0].pseudo ? (
+                    {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
                       <Button onClick={startGame} >
                         Lancer la partie
                       </Button>
@@ -210,9 +225,9 @@ export default function BoardGame() {
                   </>
                 ) : (
                   <>
-                    {playersInGame.length > 0 && currentPlayer?.pseudo === playersInGame[0].pseudo ? (
+                    {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
                       <Button onClick={distributeRoles} >
-                        Distribuer les rôles {rolesDistributed}
+                        Distribuer les rôles
                       </Button>
                     ) : (
                       <Button disabled >
@@ -260,9 +275,29 @@ export default function BoardGame() {
         )
       }
 
-      <div className=" w-full h-4/5 flex items-center justify-center flex-wrap gap-4">
+      {gameStopped && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+          <h1 className="text-2xl font-bold">La partie est terminée</h1>
+          <p className="text-lg">{winner === "villager" ? "Les villageois ont gagné" : "Les loups ont gagné"}</p>
+        </div>
+      )}
+
+      <div className=" w-full h-1/2 flex items-center justify-center flex-wrap gap-4">
         {playersInGame.map((player) => (
-          <div className="relative flex flex-col items-center" key={player.id} onClick={canWerewolfVote() && player.isAlive ? () => voteWerewolf(player.pseudo, getPseudoLocale() ?? "") : canDayVote() ? () => voteDay(player.pseudo, getPseudoLocale() ?? "") : canSeerFlipCard() ? () => seerFlipCard(player) : undefined}>
+          <div
+            className="relative flex flex-col items-center"
+            key={player.id}
+            onClick={
+              canWerewolfVote() && player.isAlive ?
+                () => voteWerewolf(player.pseudo, getPseudoLocale() ?? "") :
+                canDayVote() ?
+                  () => voteDay(player.pseudo, getPseudoLocale() ?? "") :
+                  canSeerFlipCard() ?
+                    () => seerFlipCard(player) :
+                    canHunterKill() ?
+                      () => hunterKill(player) :
+                      undefined
+            }>
 
             {werewolfVoted.find(vote => vote.votedPseudo === player.pseudo && vote.voterPseudo === currentPlayer?.pseudo) !== undefined && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 rotate-180">
@@ -277,13 +312,18 @@ export default function BoardGame() {
             )}
 
             <div className="flex items-center gap-2 justify-center">
-              {player.pseudo} {JSON.stringify(isCardFlipped(player))} {player.isAlive ? <Heart fill="red" className="w-4 h-4 text-red-500" /> : <Skull className="w-4 h-4" />}
+              {player.pseudo} {player.isAlive ? <Heart fill="red" className="w-4 h-4 text-red-500" /> : <Skull className="w-4 h-4" />}
             </div>
 
             {(role === 'werewolf' && currentPhase === "night-werewolf") && werewolfVoted.filter(vote => vote.votedPseudo === player.pseudo).length}
             {currentPhase === "day-vote" && dayVoted.filter(vote => vote.votedPseudo === player.pseudo).length}
 
-            <WerewolfCard role={player.role as WerewolfRole} isFlipped={seerFlip === player.pseudo ? false : isCardFlipped(player)} isAlive={player.isAlive} className="w-48 h-48" />
+            <WerewolfCard
+              role={player.role as WerewolfRole}
+              isFlipped={seerFlip === player.pseudo ? false : isCardFlipped(player)}
+              isAlive={player.isAlive}
+              className={getCardSize(playersInGame.length)}
+            />
           </div>
         ))}
       </div>
