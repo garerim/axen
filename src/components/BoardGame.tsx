@@ -225,18 +225,28 @@ export default function BoardGame() {
                   </>
                 ) : (
                   <>
-                    {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
-                      <Button onClick={distributeRoles} >
-                        Distribuer les rôles
-                      </Button>
+                    {playersInGame.find(p => p.pseudo === getPseudoLocale()) === undefined ? (
+                      <>
+                        <Button onClick={joinGame} >
+                          Joindre la partie
+                        </Button>
+                      </>
                     ) : (
-                      <Button disabled >
-                        En attente du créateur de la partie
-                      </Button>
+                      <>
+                        {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
+                          <Button onClick={distributeRoles} >
+                            Distribuer les rôles
+                          </Button>
+                        ) : (
+                          <Button disabled >
+                            En attente du créateur de la partie
+                          </Button>
+                        )}
+                        <Button onClick={() => leaveGame()}>
+                          Quitter la partie
+                        </Button>
+                      </>
                     )}
-                    <Button onClick={() => leaveGame()}>
-                      Quitter la partie
-                    </Button>
                   </>
                 )}
               </>
