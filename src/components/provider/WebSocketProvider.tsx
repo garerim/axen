@@ -13,13 +13,19 @@ export type Player = {
 
 type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote' | 'night-seer' | 'hunter-phase-1' | 'hunter-phase-2';
 
+type Message = {
+    type: string;
+    message: string;
+    sender: Player;
+    time: 'day' | 'night' | null;
+};
+
 type WebSocketContextType = {
     currentPlayer: Player | null;
     sendMessage: (type: string, data: any) => void;
     setPseudo: (pseudo: string) => void;
     isConnected: boolean;
-    // TODO : Update le type des messages. Remplacer role et sender par sender: Player + Add une variable time pour savoir si le message à été ecrit pendant la nuit ou le jour
-    messages: Array<{ type: string; message: string; sender?: string; role?: string }>;
+    messages: Message[];
     players: Player[];
     playersInGame: Player[];
     joinGame: () => void;
@@ -74,7 +80,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
     const [players, setPlayers] = useState<Player[]>([]);
     const [playersInGame, setPlayersInGame] = useState<Player[]>([]);
-    const [messages, setMessages] = useState<Array<{ type: string; message: string; sender?: string; role?: string }>>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [role, setRole] = useState<string | null>(null);
     const [gameCanStart, setGameCanStart] = useState(false);
     const [gameStopped, setGameStopped] = useState(false);
@@ -144,19 +150,19 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         break;
                     case 'welcome':
                         console.log(data.message);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'welcome', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('welcome', data.message)]);
                         break;
                     case 'infoNight':
                         console.log(data.message);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'infoNight', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('infoNight', data.message)]);
                         break;
                     case 'infoDay':
                         console.log(data.message);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'infoDay', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('infoDay', data.message)]);
                         break;
                     case 'error':
                         console.error(data.message);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'error', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('error', data.message)]);
                         break;
                     case 'role':
                         console.log('Rôle reçu:', data.role);
@@ -164,11 +170,11 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         break;
                     case 'gameStarted':
                         console.log(data.message);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'gameStart', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('gameStart', data.message)]);
                         break;
                     case 'gameOver':
                         console.log(data.message);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'gameOver', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('gameOver', data.message)]);
                         setWinner(data.winner);
                         break;
                     case 'gameStopped':
@@ -177,15 +183,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setCurrentPhase('waiting');
                         setRolesDistributed(false);
                         setGameCanStart(false);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'gameStopped', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('gameStopped', data.message)]);
                         break;
                     case 'resetGame':
                         setCanGameReset(true);
                         break;
                     case 'gameCanStart':
                         console.log(data.message);
-                        console.log("uhqvkzqduhyzvqduyvqzdyq");
-                        setMessages((prevMessages) => [...prevMessages, { type: 'gameCanStart', message: data.message }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('gameCanStart', data.message)]);
                         setGameCanStart(true);
                         break;
                     case 'gameCantStart':
@@ -201,7 +206,12 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setHunterHasKill(true);
                         break;
                     case 'general':
-                        setMessages((prevMessages) => [...prevMessages, { type: 'general', message: data.message, sender: data.sender, role: data.role }]);
+                        setMessages((prevMessages) => [...prevMessages, {
+                            type: 'general',
+                            message: data.message,
+                            sender: data.sender,
+                            time: data.time
+                        }]);
                         break;
                     case 'phaseChange':
                         console.log("phaseChange", data);
@@ -216,7 +226,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         break;
                     default:
                         console.log('Message reçu:', data);
-                        setMessages((prevMessages) => [...prevMessages, { type: 'unknown', message: JSON.stringify(data) }]);
+                        setMessages((prevMessages) => [...prevMessages, systemMessage('unknown', JSON.stringify(data))]);
                 }
             };
 
@@ -314,6 +324,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         setCanGameReset(false);
         setHunterHasKill(false);
     }
+
+    // Pour les messages système (welcome, infoNight, etc.), ajoutez un sender système et un time
+    const systemMessage = (type: string, message: any): Message => ({
+        type,
+        message,
+        sender: { id: 0, pseudo: 'System' },
+        time: null // currentPhase?.includes('night') ? 'night' : 'day' as const
+    });
 
     return (
         <WebSocketContext.Provider

@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
-import { getPseudoLocale, useWebSocket } from "./provider/WebSocketProvider";
 import { useState } from "react";
+import { getPseudoLocale, useWebSocket } from "./provider/WebSocketProvider";
 
 export default function ChatInput() {
-    const { sendMessage, role, currentPhase, currentPlayer } = useWebSocket()
+    const { sendMessage, currentPlayer, currentPhase } = useWebSocket()
 
     const [text, setText] = useState<string>('')
 
@@ -19,15 +19,16 @@ export default function ChatInput() {
                 chatType: 'general',
                 message: text,
                 sender: getPseudoLocale(),
-                role: role
             }
         };
 
         sendMessage(messageData.type, messageData.data);
         setText('');
+        console.log(currentPlayer);
+        
     };
 
-    const isDisabled = (currentPhase.includes('night')) || currentPlayer?.isAlive === false // && role !== 'werewolf'
+    const isDisabled = ((currentPhase.includes('night')) || currentPlayer?.isAlive === false) && currentPlayer?.role !== 'werewolf'
 
     return (
         <form onSubmit={handleSubmit} className="w-full flex items-center gap-2">
