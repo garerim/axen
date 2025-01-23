@@ -33,7 +33,7 @@ type WebSocketContextType = {
     rolesDistributed: boolean;
     gameCanStart: boolean;
     gameStopped: boolean;
-    distributeRoles: () => void;
+    distributeRoles: (array: any[]) => void;
     startGame: () => void;
     currentPhase: Phase;
     phaseTimeRemaining: number;
@@ -55,6 +55,7 @@ type WebSocketContextType = {
     witchKill: Player | null;
     witchPotion: {life: boolean, death: boolean};
     witchKillPlayer: (player: Player) => void;
+    defaultRoles: string[];
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -105,16 +106,17 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [witchWantsKill, setWitchWantsKill] = useState<boolean>(false);
     const [witchKill, setWitchKill] = useState<Player | null>(null);
     const [witchPotion, setWitchPotion] = useState({life: false, death: false});
+    const [defaultRoles, setDefaultRoles] = useState<string[]>([])
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
         // Initialisation de la connexion WebSocket
         const connect = () => {
             // ws.current = new WebSocket('https://loup-garou-backend.onrender.com'); // Serveur en ligne
-            ws.current = new WebSocket('ws://192.168.1.189:3000');
+            // ws.current = new WebSocket('ws://192.168.1.189:3000');
             // ws.current = new WebSocket('ws://172.20.10.2:3000');
             // ws.current = new WebSocket('ws://192.168.1.31:3000');
-            // ws.current = new WebSocket('ws://172.16.10.97:3000');
+            ws.current = new WebSocket('ws://172.16.10.97:3000');
 
 
             ws.current.onopen = () => {
@@ -204,6 +206,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('gameCanStart', data.message)]);
                         setGameCanStart(true);
+                        setDefaultRoles(data.roles);
                         break;
                     case 'gameCantStart':
                         setGameCanStart(false);
@@ -299,8 +302,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         }
     }
 
-    const distributeRoles = () => {
-        sendMessage('distributeRoles', {});
+    const distributeRoles = (roles: any[] = []) => {
+        sendMessage('distributeRoles', {roles});
     }
 
     const startGame = () => {
@@ -413,7 +416,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 setWitchWantsKill,
                 witchKill,
                 witchPotion,
-                witchKillPlayer
+                witchKillPlayer,
+                defaultRoles
             }}
         >
             {children}

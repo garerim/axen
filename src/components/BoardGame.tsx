@@ -14,11 +14,13 @@ import { useEffect, useState } from "react"
 import deathPotion from "@/assets/werewolf/death-potion.png"
 import lifePotion from "@/assets/werewolf/life-potion.png"
 import { Dialog, DialogContent } from "./ui/dialog"
+import { RolesDialog } from "./RolesDialog"
 
 export default function BoardGame() {
 
   const { setTheme } = useTheme();
   const [seerFlip, setSeerFlip] = useState<string>("");
+  const [hasWitchUsePotion, setHasWitchUsePotion] = useState(false);
 
   const {
     currentPlayer,
@@ -27,7 +29,6 @@ export default function BoardGame() {
     role,
     joinGame,
     playersInGame,
-    distributeRoles,
     rolesDistributed,
     startGame,
     phaseTimeRemaining,
@@ -53,7 +54,11 @@ export default function BoardGame() {
     witchKill,
   } = useWebSocket();
 
-  const [hasWitchUsePotion, setHasWitchUsePotion] = useState(false);
+  useEffect(() => {
+    if (getPseudoLocale() === null) {
+      window.location.href = '/';
+    }
+  }, [])
 
   useEffect(() => {
     if (currentPhase.includes('night')) {
@@ -251,9 +256,12 @@ export default function BoardGame() {
                     ) : (
                       <>
                         {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
-                          <Button onClick={distributeRoles} >
-                            Distribuer les rôles
-                          </Button>
+                          <>
+                            <RolesDialog />
+                            {/* <Button onClick={distributeRoles} >
+                              Distribuer les rôles
+                            </Button> */}
+                          </>
                         ) : (
                           <Button disabled >
                             En attente du créateur de la partie
