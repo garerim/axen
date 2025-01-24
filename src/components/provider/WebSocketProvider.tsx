@@ -93,6 +93,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [winner, setWinner] = useState<string | null>(null);
     const [canGameReset, setCanGameReset] = useState(false);
     const [hunterHasKill, setHunterHasKill] = useState(false);
+    const [shotGunPump] = useState(new Audio("audio/werewolf/pumpShot.mp4"));
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -203,6 +204,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setDayVoted(data.dayVotedArray);
                         break;
                     case 'hunterHasKill':
+                        shotGunPump.play();
                         setHunterHasKill(true);
                         break;
                     case 'general':
