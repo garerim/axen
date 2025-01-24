@@ -11,7 +11,7 @@ export type Player = {
     isMayor?: boolean;
 };
 
-type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote' | 'night-seer' | 'hunter-phase-1' | 'hunter-phase-2';
+type Phase = 'waiting' | 'night-werewolf' | 'day-discussion' | 'day-vote' | 'night-seer' | 'hunter-phase-1' | 'hunter-phase-2' | 'night-witch';
 
 type Message = {
     type: string;
@@ -33,7 +33,7 @@ type WebSocketContextType = {
     rolesDistributed: boolean;
     gameCanStart: boolean;
     gameStopped: boolean;
-    distributeRoles: () => void;
+    distributeRoles: (array: any[]) => void;
     startGame: () => void;
     currentPhase: Phase;
     phaseTimeRemaining: number;
@@ -48,6 +48,14 @@ type WebSocketContextType = {
     canGameReset: boolean;
     hunterKill: (player: Player) => void;
     hunterHasKill: boolean;
+    wolfWillKill: string | null;
+    savePlayer: (player: string) => void;
+    witchWantsKill: boolean;
+    setWitchWantsKill: (witchWantsKill: boolean) => void;
+    witchKill: Player | null;
+    witchPotion: {life: boolean, death: boolean};
+    witchKillPlayer: (player: Player) => void;
+    defaultRoles: string[];
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -55,7 +63,8 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(undefin
 export const PHASE_DURATIONS = {
     'night-seer': 20000,        // 20 secondes pour le seer
     'night-werewolf': 30000,    // 30 secondes pour les loups
-    'day-discussion': 120000,   // 2 minutes de discussion
+    'night-witch': 30000,      // 30 secondes pour la sorcière
+    'day-discussion': 10000,   // 2 minutes de discussion
     'day-vote': 30000,          // 30 secondes pour voter
     'hunter-phase-1': 10000,    // 10 secondes pour le hunter
     'hunter-phase-2': 10000,    // 10 secondes pour le hunter
@@ -94,6 +103,11 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [canGameReset, setCanGameReset] = useState(false);
     const [hunterHasKill, setHunterHasKill] = useState(false);
     const [shotGunPump] = useState(new Audio("audio/werewolf/pumpShot.mp4"));
+    const [wolfWillKill, setWolfWillKill] = useState<string | null>(null);
+    const [witchWantsKill, setWitchWantsKill] = useState<boolean>(false);
+    const [witchKill, setWitchKill] = useState<Player | null>(null);
+    const [witchPotion, setWitchPotion] = useState({life: false, death: false});
+    const [defaultRoles, setDefaultRoles] = useState<string[]>([])
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -193,12 +207,16 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('gameCanStart', data.message)]);
                         setGameCanStart(true);
+                        setDefaultRoles(data.roles);
                         break;
                     case 'gameCantStart':
                         setGameCanStart(false);
                         break;
                     case 'werewolfHasVoted':
                         setWerewolfVoted(data.werewolfVotedArray);
+                        break;
+                    case 'wolfWillKill':
+                        setWolfWillKill(data.playerToDie);
                         break;
                     case 'dayHasVoted':
                         setDayVoted(data.dayVotedArray);
@@ -263,6 +281,12 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         }
     }, [playersInGame])
 
+    useEffect(() => {
+        if (currentPhase === 'hunter-phase-1') {
+            setWitchWantsKill(false);
+        }
+    }, [currentPhase])
+
     const sendMessage = (type: string, data: any) => {
         if (ws.current?.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify({ type, data }));
@@ -280,8 +304,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         }
     }
 
-    const distributeRoles = () => {
-        sendMessage('distributeRoles', {});
+    const distributeRoles = (roles: any[] = []) => {
+        sendMessage('distributeRoles', {roles});
     }
 
     const startGame = () => {
@@ -309,6 +333,25 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         sendMessage('hunterKill', { hunterPseudo: currentPlayer?.pseudo, playerPseudo: player.pseudo });
     }
 
+    const savePlayer = (player: string) => {
+        const potion = {
+            life: false,
+            death: witchPotion.death
+        }
+        setWitchPotion(potion);
+        sendMessage('savePlayer', { playerPseudo: player });
+    }
+
+    const witchKillPlayer = (player: Player) => {
+        setWitchKill(player);
+        sendMessage('witchKillPlayer', { playerPseudo: player.pseudo });
+        const potion = {
+            life: witchPotion.life,
+            death: true
+        }
+        setWitchPotion(potion);
+    }
+
     const resetGame = () => {
         setCurrentPlayer(null);
         setRole(null);
@@ -325,6 +368,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         setWinner(null);
         setCanGameReset(false);
         setHunterHasKill(false);
+        setWitchPotion({ life: false, death: false });
+        setWitchKill(null);
+        setWitchWantsKill(false);
+        setWitchWantsKill(false);
     }
 
     // Pour les messages système (welcome, infoNight, etc.), ajoutez un sender système et un time
@@ -365,6 +412,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 canGameReset,
                 hunterKill,
                 hunterHasKill,
+                wolfWillKill,
+                savePlayer,
+                witchWantsKill,
+                setWitchWantsKill,
+                witchKill,
+                witchPotion,
+                witchKillPlayer,
+                defaultRoles
             }}
         >
             {children}

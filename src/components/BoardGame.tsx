@@ -11,6 +11,11 @@ import { ChevronLeft, Heart, Skull, Triangle } from "lucide-react"
 
 import { useEffect, useState } from "react"
 
+import deathPotion from "@/assets/werewolf/death-potion.png"
+import lifePotion from "@/assets/werewolf/life-potion.png"
+import { Dialog, DialogContent } from "./ui/dialog"
+import { RolesDialog } from "./RolesDialog"
+
 export default function BoardGame() {
 
   const { setTheme } = useTheme();
@@ -19,6 +24,7 @@ export default function BoardGame() {
   const [pumpReload] = useState(new Audio("audio/werewolf/pumpReload.mp4"));
   // pumpReload.loop = true;
   // pumpReload.play();
+  const [hasWitchUsePotion, setHasWitchUsePotion] = useState(false);
 
   const {
     currentPlayer,
@@ -27,7 +33,6 @@ export default function BoardGame() {
     role,
     joinGame,
     playersInGame,
-    distributeRoles,
     rolesDistributed,
     startGame,
     phaseTimeRemaining,
@@ -43,8 +48,21 @@ export default function BoardGame() {
     canGameReset,
     sendMessage,
     hunterKill,
-    hunterHasKill
-  } = useWebSocket()
+    hunterHasKill,
+    wolfWillKill,
+    savePlayer,
+    witchWantsKill,
+    setWitchWantsKill,
+    witchPotion,
+    witchKillPlayer,
+    witchKill,
+  } = useWebSocket();
+
+  useEffect(() => {
+    if (getPseudoLocale() === null) {
+      window.location.href = '/';
+    }
+  }, [])
 
   useEffect(() => {
     if (currentPhase.includes('night')) {
@@ -127,6 +145,7 @@ export default function BoardGame() {
   const PhaseName = {
     'night-seer': 'Tour de la voyante',
     'night-werewolf': 'Tour des loups',
+    'night-witch': 'Tour de la sorcière',
     'day-discussion': 'Discussion du jour',
     'day-vote': 'Vote du jour',
     'waiting': 'En attente des autres joueurs',
@@ -150,7 +169,6 @@ export default function BoardGame() {
       }
     }
 
-
     return res;
   }
 
@@ -168,6 +186,10 @@ export default function BoardGame() {
 
   const canHunterKill = () => {
     return (currentPhase === "hunter-phase-1" || currentPhase === "hunter-phase-2") && role === 'hunter' && !currentPlayer?.isAlive && !hunterHasKill;
+  }
+
+  const canWitchKill = () => {
+    return currentPhase === "night-witch" && role === 'witch' && witchWantsKill && !hasWitchUsePotion;
   }
 
   const seerFlipCard = (player: Player) => {
@@ -239,9 +261,12 @@ export default function BoardGame() {
                     ) : (
                       <>
                         {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
-                          <Button onClick={distributeRoles} >
-                            Distribuer les rôles
-                          </Button>
+                          <>
+                            <RolesDialog />
+                            {/* <Button onClick={distributeRoles} >
+                              Distribuer les rôles
+                            </Button> */}
+                          </>
                         ) : (
                           <Button disabled >
                             En attente du créateur de la partie
@@ -297,6 +322,30 @@ export default function BoardGame() {
         </div>
       )}
 
+      {(currentPhase === 'night-witch' && role === 'witch') && (
+        <Dialog open={(!hasWitchUsePotion && !witchWantsKill)} onOpenChange={() => { }}>
+          <DialogContent className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+            <p className="text-2xl font-bold">
+              {wolfWillKill ? `${wolfWillKill} a été tué` : "Aucun joueur n'a été tué"}
+            </p>
+            <div className="flex items-center justify-center gap-4">
+              <button tabIndex={-1} disabled={!wolfWillKill || witchPotion.life} onClick={() => { savePlayer(wolfWillKill ?? ""); setHasWitchUsePotion(true); }} className="flex flex-col items-center gap-2 w-36">
+                <div className="w-full h-auto border-[6px] border-green-400 rounded-lg overflow-hidden">
+                  <img src={lifePotion} alt="Potion" className={cn("w-full h-full", wolfWillKill ? "opacity-100" : "brightness-[0.25]")} />
+                </div>
+                <p className="text-center">Voulez-vous le sauver ?</p>
+              </button>
+              <button tabIndex={-1} disabled={witchPotion.death} onClick={() => setWitchWantsKill(true)} className="flex flex-col items-center gap-2 w-36">
+                <div className="w-full h-auto border-[6px] border-red-800 rounded-lg overflow-hidden">
+                  <img src={deathPotion} alt="Potion" className={cn("w-full h-full", !witchPotion.death ? "opacity-100" : "brightness-[0.25]")} />
+                </div>
+                <p className="text-center">Voulez-vous tuer un autre joueur ?</p>
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
       <div className=" w-full h-1/2 flex items-center justify-center flex-wrap gap-4">
         {playersInGame.map((player) => (
           <div
@@ -311,16 +360,27 @@ export default function BoardGame() {
                     () => seerFlipCard(player) :
                     canHunterKill() ?
                       () => hunterKill(player) :
-                      undefined
+                      canWitchKill() ?
+                        () => {
+                          // setHasWitchUsePotion(true);
+                          witchKillPlayer(player);
+                        } :
+                        undefined
             }>
 
-            {werewolfVoted.find(vote => vote.votedPseudo === player.pseudo && vote.voterPseudo === currentPlayer?.pseudo) !== undefined && (
+            {(werewolfVoted.find(vote => vote.votedPseudo === player.pseudo && vote.voterPseudo === currentPlayer?.pseudo) !== undefined && currentPhase === "night-werewolf") && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 rotate-180">
                 <Triangle className="w-8 h-8 text-green-500 fill-green-500 animate-bounce" />
               </div>
             )}
 
             {dayVoted.find(vote => vote.votedPseudo === player.pseudo && vote.voterPseudo === currentPlayer?.pseudo) !== undefined && (
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 rotate-180">
+                <Triangle className="w-8 h-8 text-green-500 fill-green-500 animate-bounce" />
+              </div>
+            )}
+
+            {witchKill === player && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 rotate-180">
                 <Triangle className="w-8 h-8 text-green-500 fill-green-500 animate-bounce" />
               </div>
