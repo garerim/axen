@@ -19,6 +19,7 @@ export function RolesDialog() {
     const [seer, setSeer] = useState(0)
     const [hunter, setHunter] = useState(0)
     const [witch, setWitch] = useState(0)
+    const [littleGirl, setLittleGirl] = useState(0)
 
     const [error, setError] = useState('')
 
@@ -31,6 +32,7 @@ export function RolesDialog() {
         setSeer(defaultRoles?.filter(role => role === 'seer').length || 0)
         setHunter(defaultRoles?.filter(role => role === 'hunter').length || 0)
         setWitch(defaultRoles?.filter(role => role === 'witch').length || 0)
+        setLittleGirl(defaultRoles?.filter(role => role === 'littleGirl').length || 0)
     }, [defaultRoles])
 
     const sendRoles = () => {
@@ -53,7 +55,8 @@ export function RolesDialog() {
             ...Array(villager).fill('villager'),
             ...Array(seer).fill('seer'),
             ...Array(hunter).fill('hunter'),
-            ...Array(witch).fill('witch')
+            ...Array(witch).fill('witch'),
+            ...Array(littleGirl).fill('littleGirl')
         ];
         distributeRoles(roles);
         setError('');
@@ -150,6 +153,23 @@ export function RolesDialog() {
                                     setHunter(0)
                                 } else {
                                     setHunter(parseInt(e.target.value))
+                                }
+                            }}
+                            className="col-span-3"
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="littleGirl" className="text-right">
+                            Petite fille
+                        </Label>
+                        <Input
+                            id="littleGirl"
+                            value={littleGirl}
+                            onChange={(e) => {
+                                if (e.target.value === '') {
+                                    setLittleGirl(0)
+                                } else {
+                                    setLittleGirl(parseInt(e.target.value))
                                 }
                             }}
                             className="col-span-3"

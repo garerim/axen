@@ -210,10 +210,10 @@ export default function BoardGame() {
   }, [seerFlip])
 
   const getCardSize = (playerCount: number) => {
-    if (playerCount <= 6) return "w-[210px]";
-    if (playerCount <= 8) return "w-[180px]";
-    if (playerCount <= 10) return "w-[150px]";
-    return "w-[120px]";
+    if (playerCount <= 6) return "w-[160px]";
+    if (playerCount <= 8) return "w-[140px]";
+    if (playerCount <= 10) return "w-[120px]";
+    return "w-[100px]";
   }
 
   return (
@@ -341,7 +341,7 @@ export default function BoardGame() {
         </Dialog>
       )}
 
-      <div className=" w-full h-1/2 flex items-center justify-center flex-wrap gap-4">
+      <div className="w-full h-[70%] flex items-center justify-center flex-wrap gap-4">
         {playersInGame.map((player) => (
           <div
             className="relative flex flex-col items-center"
@@ -392,7 +392,7 @@ export default function BoardGame() {
               role={player.role as WerewolfRole}
               isFlipped={seerFlip === player.pseudo ? false : isCardFlipped(player)}
               isAlive={player.isAlive}
-              className={getCardSize(playersInGame.length)}
+              className={`flex-shrink-0 ${getCardSize(playersInGame.length)}`}
             />
           </div>
         ))}
