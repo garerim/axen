@@ -16,12 +16,12 @@ export const NavBar = () => {
                 navItems.map((item, index) => {
                     return (
                         <div key={index.toString()} className='w-full flex justify-center'>
-                            <Link href = {item.link} className = {`text-white hover:bg-violet-400 p-2 ${item.isSelected ? 'bg-violet-700 underline' : ''}`}>
+                            <Link to={item.link} className={`text-white hover:bg-violet-400 p-2 ${item.isSelected ? 'bg-violet-700 underline' : ''}`}>
                                 {item.name}
                             </Link>
                         </div>
                     )
-            })
+                })
             }
             <UserButton />
         </nav>
