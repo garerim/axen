@@ -18,5 +18,6 @@ export default defineConfig({
         format: 'esm',
       },
     },
-  }
+  },
+  envPrefix: 'VITE_',
 })
