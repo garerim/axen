@@ -112,7 +112,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     useEffect(() => {
         // Initialisation de la connexion WebSocket
         const connect = () => {
-            ws.current = new WebSocket(import.meta.env.VITE_BACKEND_URL ?? 'ws://localhost:3000'); // 
+            ws.current = new WebSocket('ws://192.168.1.31:3000'); // import.meta.env.VITE_BACKEND_URL ?? 'ws://localhost:3000'
 
             ws.current.onopen = () => {
                 console.log('Connecté au serveur WebSocket');
@@ -363,7 +363,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         setHunterHasKill(false);
         setWitchPotion({ life: false, death: false });
         setWitchKill(null);
-        setWitchWantsKill(false);
         setWitchWantsKill(false);
     }
 

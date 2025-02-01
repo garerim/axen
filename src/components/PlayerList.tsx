@@ -8,7 +8,7 @@ export default function PlayerList() {
     const { playersInGame } = useWebSocket()
 
     return (
-        <Card className="w-fit h-auto absolute top-1 right-1 m-2 shadow-md">
+        <Card className="w-fit h-auto md:absolute hidden top-1 right-1 m-2 shadow-md ">
             <Accordion type="single" collapsible>
                 <AccordionItem value="item-1">
                     <AccordionTrigger className="px-3">
