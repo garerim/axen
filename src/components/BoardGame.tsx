@@ -220,7 +220,7 @@ export default function BoardGame() {
   }
 
   return (
-    <div className={cn("w-full h-full flex flex-col")}>
+    <div className={cn("w-full h-[100dvh] flex flex-col  md:pb-0")}>
       <h1 className='text-lg md:text-3xl text-center font-bold'><p>Phase : {PhaseName[currentPhase]}</p></h1>
       <div className="absolute top-6 left-3 right-3 flex gap-2">
         <a href="/">
