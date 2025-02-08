@@ -213,9 +213,9 @@ export default function BoardGame() {
   }, [seerFlip])
 
   const getCardSize = (playerCount: number) => {
-    if (playerCount <= 6) return "w-[160px]";
-    if (playerCount <= 8) return "w-[140px]";
-    if (playerCount <= 10) return "w-[120px]";
+    if (playerCount <= 6) return "md:w-[160px]";
+    if (playerCount <= 8) return "md:w-[140px]";
+    if (playerCount <= 10) return "md:w-[120px]";
     return "w-[100px]";
   }
 

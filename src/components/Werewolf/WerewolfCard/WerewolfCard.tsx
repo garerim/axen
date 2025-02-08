@@ -22,7 +22,7 @@ export const WerewolfCard = (props: WerewolfCardProps) => {
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
 		<div
-			className={`relative w-20 md:w-40 cursor-pointer perspective-1000 shadow-lg ${!isAlive && "grayscale"} ${className}`}
+			className={`relative w-24 md:w-40 cursor-pointer perspective-1000 shadow-lg ${!isAlive && "grayscale"} ${className}`}
 			onClick={handleClick}
 		>
 			<div
