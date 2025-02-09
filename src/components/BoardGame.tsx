@@ -23,7 +23,6 @@ export default function BoardGame() {
 
   const { setTheme } = useTheme();
   const [seerFlip, setSeerFlip] = useState<string>("");
-  const [hasWitchUsePotion, setHasWitchUsePotion] = useState(false);
 
   const {
     currentPlayer,
@@ -55,6 +54,8 @@ export default function BoardGame() {
     witchPotion,
     witchKillPlayer,
     witchKill,
+    hasWitchUsePotion,
+    setHasWitchUsePotion
   } = useWebSocket();
 
   useEffect(() => {
@@ -220,7 +221,7 @@ export default function BoardGame() {
   }
 
   return (
-    <div className={cn("w-full h-[100dvh] flex flex-col  md:pb-0")}>
+    <div className={cn("w-full h-[100dvh] flex flex-col")}>
       <h1 className='text-lg md:text-3xl text-center font-bold'><p>Phase : {PhaseName[currentPhase]}</p></h1>
       <div className="absolute top-6 left-3 right-3 flex gap-2">
         <a href="/">
@@ -251,7 +252,7 @@ export default function BoardGame() {
         </div>
       )}
 
-      {(currentPhase === 'night-witch' && role === 'witch') && (
+      {(currentPhase === 'night-witch' && role === 'witch') ? (
         <Dialog open={(!hasWitchUsePotion && !witchWantsKill)} onOpenChange={() => { }}>
           <DialogContent className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
             <p className="text-2xl font-bold">
@@ -273,9 +274,9 @@ export default function BoardGame() {
             </div>
           </DialogContent>
         </Dialog>
-      )}
+      ) : null}
 
-      <div className="flex-1 w-full md:h-[70%] flex items-center justify-center flex-wrap gap-4 mt-8 md:mt-0 bg-transparent">
+      <div className="flex-1 w-full  flex items-center justify-center flex-wrap gap-4 mt-8 md:mt-0 bg-transparent">
         {playersInGame.map((player) => (
           <div
             className="relative flex flex-col items-center"

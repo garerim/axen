@@ -56,6 +56,8 @@ type WebSocketContextType = {
     witchPotion: {life: boolean, death: boolean};
     witchKillPlayer: (player: Player) => void;
     defaultRoles: string[];
+    hasWitchUsePotion: boolean;
+    setHasWitchUsePotion: (hasWitchUsePotion: boolean) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -107,6 +109,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [witchKill, setWitchKill] = useState<Player | null>(null);
     const [witchPotion, setWitchPotion] = useState({life: false, death: false});
     const [defaultRoles, setDefaultRoles] = useState<string[]>([])
+    const [hasWitchUsePotion, setHasWitchUsePotion] = useState(false);
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -140,7 +143,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setPlayers(data.players);
                         break;
                     case 'playersInGameUpdate':
-                        console.log("playersInGameUpdate", data);
                         setPlayersInGame(data.players);
                         setCurrentPlayer(data.players.find((p: any) => p.pseudo === getPseudoLocale()));
                         break;
@@ -158,15 +160,12 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
                         break;
                     case 'welcome':
-                        console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('welcome', data.message)]);
                         break;
                     case 'infoNight':
-                        console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('infoNight', data.message)]);
                         break;
                     case 'infoDay':
-                        console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('infoDay', data.message)]);
                         break;
                     case 'error':
@@ -174,20 +173,16 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setMessages((prevMessages) => [...prevMessages, systemMessage('error', data.message)]);
                         break;
                     case 'role':
-                        console.log('Rôle reçu:', data.role);
                         setRole(data.role);
                         break;
                     case 'gameStarted':
-                        console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('gameStart', data.message)]);
                         break;
                     case 'gameOver':
-                        console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('gameOver', data.message)]);
                         setWinner(data.winner);
                         break;
                     case 'gameStopped':
-                        console.log(data.message);
                         setGameStopped(true);
                         setCurrentPhase('waiting');
                         setRolesDistributed(false);
@@ -198,7 +193,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setCanGameReset(true);
                         break;
                     case 'gameCanStart':
-                        console.log(data.message);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('gameCanStart', data.message)]);
                         setGameCanStart(true);
                         setDefaultRoles(data.roles);
@@ -227,7 +221,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         }]);
                         break;
                     case 'phaseChange':
-                        console.log("phaseChange", data);
                         setCurrentPhase(data.phase);
                         if (data.phase === 'night-seer') {
                             setSeerHasFlipped(false);
@@ -238,7 +231,6 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setPhaseTimeRemaining(data.timeRemaining);
                         break;
                     default:
-                        console.log('Message reçu:', data);
                         setMessages((prevMessages) => [...prevMessages, systemMessage('unknown', JSON.stringify(data))]);
                 }
             };
@@ -364,6 +356,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         setWitchPotion({ life: false, death: false });
         setWitchKill(null);
         setWitchWantsKill(false);
+        setHasWitchUsePotion(false);
     }
 
     // Pour les messages système (welcome, infoNight, etc.), ajoutez un sender système et un time
@@ -411,7 +404,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 witchKill,
                 witchPotion,
                 witchKillPlayer,
-                defaultRoles
+                defaultRoles,
+                hasWitchUsePotion,
+                setHasWitchUsePotion
             }}
         >
             {children}
