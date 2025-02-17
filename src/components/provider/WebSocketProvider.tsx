@@ -20,6 +20,29 @@ type Message = {
     time: 'day' | 'night' | null;
 };
 
+export type Room = {
+    roomName: string,
+    roomId: string,
+    roomImg: number;
+    players: [],
+    playersInGame: [],
+    messages: [],
+    gameCanStart: false,
+    roles: [],
+    currentPhase: Phase,
+    werewolfVotedArray: [],
+    dayVotedArray: [],
+    nightKilled: string | null,
+    dayKilled: string | null,
+    killedByHunter: string | null,
+    killedByWitch: string | null,
+    witchPotions: { life: boolean, death: boolean },
+    witchSave: boolean,
+    phaseTimeout: number | null,
+    phaseTimeRemainingInterval: number | null,
+    currentPhaseStartTime: number | null,
+}
+
 type WebSocketContextType = {
     currentPlayer: Player | null;
     sendMessage: (type: string, data: any) => void;
@@ -53,11 +76,13 @@ type WebSocketContextType = {
     witchWantsKill: boolean;
     setWitchWantsKill: (witchWantsKill: boolean) => void;
     witchKill: Player | null;
-    witchPotion: {life: boolean, death: boolean};
+    witchPotion: { life: boolean, death: boolean };
     witchKillPlayer: (player: Player) => void;
     defaultRoles: string[];
     hasWitchUsePotion: boolean;
     setHasWitchUsePotion: (hasWitchUsePotion: boolean) => void;
+    rooms: { [key: string]: Room };
+    createRoom: (roomName: string) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
@@ -110,6 +135,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [witchPotion, setWitchPotion] = useState({life: false, death: false});
     const [defaultRoles, setDefaultRoles] = useState<string[]>([])
     const [hasWitchUsePotion, setHasWitchUsePotion] = useState(false);
+    const [rooms, setRooms] = useState<{ [key: string]: Room }>({});
     const ws = useRef<WebSocket | null>(null);
 
     useEffect(() => {
@@ -229,6 +255,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         break;
                     case 'timeUpdate':
                         setPhaseTimeRemaining(data.timeRemaining);
+                        break;
+                    case 'getRooms':
+                        setRooms(data.data.rooms);
                         break;
                     default:
                         setMessages((prevMessages) => [...prevMessages, systemMessage('unknown', JSON.stringify(data))]);
@@ -359,6 +388,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         setHasWitchUsePotion(false);
     }
 
+    const createRoom = (roomName: string) => {
+        sendMessage('createRoom', { roomName });
+    }
+
     // Pour les messages système (welcome, infoNight, etc.), ajoutez un sender système et un time
     const systemMessage = (type: string, message: any): Message => ({
         type,
@@ -406,7 +439,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 witchKillPlayer,
                 defaultRoles,
                 hasWitchUsePotion,
-                setHasWitchUsePotion
+                setHasWitchUsePotion,
+                rooms,
+                createRoom
             }}
         >
             {children}

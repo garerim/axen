@@ -224,7 +224,7 @@ export default function BoardGame() {
     <div className={cn("w-full h-[100dvh] flex flex-col")}>
       <h1 className='text-lg md:text-3xl text-center font-bold'><p>Phase : {PhaseName[currentPhase]}</p></h1>
       <div className="absolute top-6 left-3 right-3 flex gap-2">
-        <a href="/">
+        <a href="/werewolf">
           <Button size={"icon"}>
             <ChevronLeft className="w-6 h-6" />
           </Button>

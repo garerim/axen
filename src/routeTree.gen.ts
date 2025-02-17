@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as WerewolfIndexImport } from './routes/werewolf/index'
+import { Route as WerewolfIdImport } from './routes/werewolf/$id'
 import { Route as WerewolfRulesIndexImport } from './routes/werewolf/rules/index'
 
 // Create/Update Routes
@@ -26,6 +27,12 @@ const IndexRoute = IndexImport.update({
 const WerewolfIndexRoute = WerewolfIndexImport.update({
   id: '/werewolf/',
   path: '/werewolf/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const WerewolfIdRoute = WerewolfIdImport.update({
+  id: '/werewolf/$id',
+  path: '/werewolf/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -44,6 +51,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/werewolf/$id': {
+      id: '/werewolf/$id'
+      path: '/werewolf/$id'
+      fullPath: '/werewolf/$id'
+      preLoaderRoute: typeof WerewolfIdImport
       parentRoute: typeof rootRoute
     }
     '/werewolf/': {
@@ -67,12 +81,14 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/werewolf/$id': typeof WerewolfIdRoute
   '/werewolf': typeof WerewolfIndexRoute
   '/werewolf/rules': typeof WerewolfRulesIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/werewolf/$id': typeof WerewolfIdRoute
   '/werewolf': typeof WerewolfIndexRoute
   '/werewolf/rules': typeof WerewolfRulesIndexRoute
 }
@@ -80,27 +96,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/werewolf/$id': typeof WerewolfIdRoute
   '/werewolf/': typeof WerewolfIndexRoute
   '/werewolf/rules/': typeof WerewolfRulesIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/werewolf' | '/werewolf/rules'
+  fullPaths: '/' | '/werewolf/$id' | '/werewolf' | '/werewolf/rules'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/werewolf' | '/werewolf/rules'
-  id: '__root__' | '/' | '/werewolf/' | '/werewolf/rules/'
+  to: '/' | '/werewolf/$id' | '/werewolf' | '/werewolf/rules'
+  id: '__root__' | '/' | '/werewolf/$id' | '/werewolf/' | '/werewolf/rules/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  WerewolfIdRoute: typeof WerewolfIdRoute
   WerewolfIndexRoute: typeof WerewolfIndexRoute
   WerewolfRulesIndexRoute: typeof WerewolfRulesIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  WerewolfIdRoute: WerewolfIdRoute,
   WerewolfIndexRoute: WerewolfIndexRoute,
   WerewolfRulesIndexRoute: WerewolfRulesIndexRoute,
 }
@@ -116,12 +135,16 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/werewolf/$id",
         "/werewolf/",
         "/werewolf/rules/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/werewolf/$id": {
+      "filePath": "werewolf/$id.tsx"
     },
     "/werewolf/": {
       "filePath": "werewolf/index.tsx"
