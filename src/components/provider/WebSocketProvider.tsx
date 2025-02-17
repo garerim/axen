@@ -104,10 +104,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [winner, setWinner] = useState<string | null>(null);
     const [canGameReset, setCanGameReset] = useState(false);
     const [hunterHasKill, setHunterHasKill] = useState(false);
-    const [shotGunPump] = useState(new Audio("audio/werewolf/pumpShot.mp4"));
-    const [pumpReload] = useState(new Audio("audio/werewolf/pumpReload.mp4"));
-    const [healPotion] = useState(new Audio("audio/werewolf/healPotion.mp4"));
-    const [killPotion] = useState(new Audio("audio/werewolf/killPotion.mp4"));
+    const [shotGunPump] = useState(new Audio("audio/werewolf/pumpShot.mp3"));
+    const [pumpReload] = useState(new Audio("audio/werewolf/pumpReload.mp3"));
+    const [healPotion] = useState(new Audio("audio/werewolf/healPotion.mp3"));
+    const [killPotion] = useState(new Audio("audio/werewolf/killPotion.mp3"));
     const [wolfWillKill, setWolfWillKill] = useState<string | null>(null);
     const [witchWantsKill, setWitchWantsKill] = useState<boolean>(false);
     const [witchKill, setWitchKill] = useState<Player | null>(null);
