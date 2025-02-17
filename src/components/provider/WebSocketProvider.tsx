@@ -103,6 +103,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [canGameReset, setCanGameReset] = useState(false);
     const [hunterHasKill, setHunterHasKill] = useState(false);
     const [shotGunPump] = useState(new Audio("audio/werewolf/pumpShot.mp4"));
+    const [healPotion] = useState(new Audio("audio/werewolf/healPotion.mp4"));
+    const [killPotion] = useState(new Audio("audio/werewolf/killPotion.mp4"));
     const [wolfWillKill, setWolfWillKill] = useState<string | null>(null);
     const [witchWantsKill, setWitchWantsKill] = useState<boolean>(false);
     const [witchKill, setWitchKill] = useState<Player | null>(null);
@@ -338,6 +340,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             life: false,
             death: witchPotion.death
         }
+        healPotion.play();
         setWitchPotion(potion);
         sendMessage('savePlayer', { playerPseudo: player });
     }
@@ -349,6 +352,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             life: witchPotion.life,
             death: true
         }
+        killPotion.play();
         setWitchPotion(potion);
     }
 
