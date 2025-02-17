@@ -105,6 +105,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [canGameReset, setCanGameReset] = useState(false);
     const [hunterHasKill, setHunterHasKill] = useState(false);
     const [shotGunPump] = useState(new Audio("audio/werewolf/pumpShot.mp4"));
+    const [pumpReload] = useState(new Audio("audio/werewolf/pumpReload.mp4"));
     const [healPotion] = useState(new Audio("audio/werewolf/healPotion.mp4"));
     const [killPotion] = useState(new Audio("audio/werewolf/killPotion.mp4"));
     const [wolfWillKill, setWolfWillKill] = useState<string | null>(null);
@@ -229,6 +230,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         if (data.phase === 'night-seer') {
                             setSeerHasFlipped(false);
                         }
+                        if ((data.phase === 'hunter-phase-1' || data.phase === 'hunter-phase-2') && playersInGame.find((p) => p.role === "hunter")?.isAlive === false && !hunterHasKill) {
+                            pumpReload.play();
+                        }
                         setPhaseTimeRemaining(data.timeRemaining);
                         break;
                     case 'timeUpdate':
@@ -327,7 +331,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             life: false,
             death: witchPotion.death
         }
-        healPotion.play();
+        if (role === 'witch') healPotion.play();
         setWitchPotion(potion);
         sendMessage('savePlayer', { playerPseudo: player });
     }
@@ -339,7 +343,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             life: witchPotion.life,
             death: true
         }
-        killPotion.play();
+        if (role === 'witch') killPotion.play();
         setWitchPotion(potion);
     }
 

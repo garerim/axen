@@ -24,9 +24,6 @@ export default function BoardGame() {
   const { setTheme } = useTheme();
   const [seerFlip, setSeerFlip] = useState<string>("");
   const [villagerWin] = useState(new Audio("audio/werewolf/villagerWin.mp3"));
-  const [pumpReload] = useState(new Audio("audio/werewolf/pumpReload.mp4"));
-  // pumpReload.loop = true;
-  // pumpReload.play();
 
   const {
     currentPlayer,
