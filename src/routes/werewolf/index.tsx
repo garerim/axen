@@ -24,15 +24,21 @@ function RouteComponent() {
         <title>Axen - Loup-Garou</title>
         <link rel="icon" type='image/png' href="logoWerewolf.png" sizes="24x24" />
       </Helmet>
-      <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel className='relative'>
-          <BoardGame />
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel maxSize={30} minSize={20} defaultSize={20}>
-          <GameChat />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      <div className='md:block hidden w-full h-full'>
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel className='relative'>
+            <BoardGame />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel maxSize={30} minSize={20} defaultSize={20}>
+            <GameChat />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+
+      <div className='md:hidden block w-full h-full'>
+        <BoardGame />
+      </div>
     </div>
   )
 }

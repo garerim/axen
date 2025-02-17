@@ -53,7 +53,7 @@ function RouteComponent() {
       {isConnected ? (
         <>
           <NavBar />
-          <div className="flex p-3 gap-2">
+          <div className="flex p-3 gap-2 flex-wrap">
             {GamesCardData.map((game, index) => (
               <GamesCard key={index.toString()} {...game} />
             ))}

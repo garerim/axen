@@ -24,8 +24,6 @@ export default function ChatInput() {
 
         sendMessage(messageData.type, messageData.data);
         setText('');
-        console.log(currentPlayer);
-        
     };
 
     const isDisabled = ((currentPhase.includes('night')) || currentPlayer?.isAlive === false) && currentPlayer?.role !== 'werewolf'

@@ -6,15 +6,18 @@ import { PHASE_DURATIONS, Player, getPseudoLocale, useWebSocket } from "@/compon
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import confetti from "canvas-confetti";
-import { ChevronLeft, Heart, Skull, Triangle } from "lucide-react"
+import confetti from "canvas-confetti"
+import { ChevronLeft, Heart, MessageCircleMore, Skull, Triangle } from "lucide-react"
 
 import { useEffect, useState } from "react"
 
 import deathPotion from "@/assets/werewolf/death-potion.png"
 import lifePotion from "@/assets/werewolf/life-potion.png"
-import { Dialog, DialogContent } from "./ui/dialog"
+import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'
+import ChatInput from "./ChatInput"
+import ChatMessageList from "./ChatMessageList"
 import { RolesDialog } from "./RolesDialog"
+import { Dialog, DialogContent } from "./ui/dialog"
 
 export default function BoardGame() {
 
@@ -24,7 +27,6 @@ export default function BoardGame() {
   const [pumpReload] = useState(new Audio("audio/werewolf/pumpReload.mp4"));
   // pumpReload.loop = true;
   // pumpReload.play();
-  const [hasWitchUsePotion, setHasWitchUsePotion] = useState(false);
 
   const {
     currentPlayer,
@@ -56,6 +58,8 @@ export default function BoardGame() {
     witchPotion,
     witchKillPlayer,
     witchKill,
+    hasWitchUsePotion,
+    setHasWitchUsePotion
   } = useWebSocket();
 
   useEffect(() => {
@@ -215,105 +219,36 @@ export default function BoardGame() {
   }, [seerFlip])
 
   const getCardSize = (playerCount: number) => {
-    if (playerCount <= 6) return "w-[210px]";
-    if (playerCount <= 8) return "w-[180px]";
-    if (playerCount <= 10) return "w-[150px]";
-    return "w-[120px]";
+    if (playerCount <= 6) return "md:w-[160px]";
+    if (playerCount <= 8) return "md:w-[140px]";
+    if (playerCount <= 10) return "md:w-[120px]";
+    return "w-[100px]";
   }
 
   return (
-    <div className={cn("w-full h-full")}>
-      <h1 className='text-2xl text-center font-bold'><p>Phase : {PhaseName[currentPhase]}</p></h1>
-      <a href="/" className="absolute top-4 left-4">
-        <Button>
-          <ChevronLeft className="w-6 h-6" />
-        </Button>
-      </a>
+    <div className={cn("w-full h-[100dvh] flex flex-col")}>
+      <h1 className='text-lg md:text-3xl text-center font-bold'><p>Phase : {PhaseName[currentPhase]}</p></h1>
+      <div className="absolute top-6 left-3 right-3 flex gap-2">
+        <a href="/">
+          <Button size={"icon"}>
+            <ChevronLeft className="w-6 h-6" />
+          </Button>
+        </a>
+        <div className="md:hidden block ml-auto">
+          <Drawer>
+            <DrawerTrigger>
+              <Button size={"icon"}>
+                <MessageCircleMore className="w-6 h-6" />
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className='min-h-[80vh] p-2'>
+              <ChatMessageList />
+              <ChatInput />
+            </DrawerContent>
+          </Drawer>
+        </div>
+      </div>
       <PlayerList />
-      {
-        currentPhase === "waiting" ? (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {gameCanStart ? (
-              <>
-                {rolesDistributed ? (
-                  <>
-                    {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
-                      <Button onClick={startGame} >
-                        Lancer la partie
-                      </Button>
-                    ) : (
-                      <Button disabled >
-                        En attente du créateur de la partie
-                      </Button>
-                    )}
-                    <Button onClick={() => leaveGame()}>
-                      Quitter la partie
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {playersInGame.find(p => p.pseudo === getPseudoLocale()) === undefined ? (
-                      <>
-                        <Button onClick={joinGame} >
-                          Joindre la partie
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
-                          <>
-                            <RolesDialog />
-                            {/* <Button onClick={distributeRoles} >
-                              Distribuer les rôles
-                            </Button> */}
-                          </>
-                        ) : (
-                          <Button disabled >
-                            En attente du créateur de la partie
-                          </Button>
-                        )}
-                        <Button onClick={() => leaveGame()}>
-                          Quitter la partie
-                        </Button>
-                      </>
-                    )}
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                {playersInGame.find(p => p.pseudo === getPseudoLocale()) !== undefined ? (
-                  <>
-                    <Button disabled >
-                      En attente des autres joueurs
-                    </Button>
-                    <Button onClick={() => leaveGame()}>
-                      Quitter la partie
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    {canGameReset ? (
-                      <Button onClick={resetGame} >
-                        Recommencer la partie
-                      </Button>
-                    ) : (
-                      <Button onClick={joinGame} >
-                        Joindre la partie
-                      </Button>
-                    )}
-                  </>
-                )
-                }
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="absolute w-full px-4 flex flex-col items-center gap-2 bottom-4 left-1/2 -translate-x-1/2">
-            <Progress value={phaseTimeRemaining * 100 / PHASE_DURATIONS[currentPhase]} />
-          </div>
-        )
-      }
 
       {gameStopped && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
@@ -322,7 +257,7 @@ export default function BoardGame() {
         </div>
       )}
 
-      {(currentPhase === 'night-witch' && role === 'witch') && (
+      {(currentPhase === 'night-witch' && role === 'witch') ? (
         <Dialog open={(!hasWitchUsePotion && !witchWantsKill)} onOpenChange={() => { }}>
           <DialogContent className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
             <p className="text-2xl font-bold">
@@ -344,9 +279,9 @@ export default function BoardGame() {
             </div>
           </DialogContent>
         </Dialog>
-      )}
+      ) : null}
 
-      <div className=" w-full h-1/2 flex items-center justify-center flex-wrap gap-4">
+      <div className="flex-1 w-full  flex items-center justify-center flex-wrap gap-4 mt-8 md:mt-0 bg-transparent">
         {playersInGame.map((player) => (
           <div
             className="relative flex flex-col items-center"
@@ -397,10 +332,97 @@ export default function BoardGame() {
               role={player.role as WerewolfRole}
               isFlipped={seerFlip === player.pseudo ? false : isCardFlipped(player)}
               isAlive={player.isAlive}
-              className={getCardSize(playersInGame.length)}
+              className={`flex-shrink-0 ${getCardSize(playersInGame.length)}`}
             />
           </div>
         ))}
+      </div>
+
+      <div className="flex justify-center items-center my-2 w-full h-fit">
+        {
+          currentPhase === "waiting" ? (
+            <div className=" flex gap-2">
+              {gameCanStart ? (
+                <>
+                  {rolesDistributed ? (
+                    <>
+                      {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
+                        <Button onClick={startGame} >
+                          Lancer la partie
+                        </Button>
+                      ) : (
+                        <Button disabled >
+                          En attente du créateur de la partie
+                        </Button>
+                      )}
+                      <Button onClick={() => leaveGame()}>
+                        Quitter la partie
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {playersInGame.find(p => p.pseudo === getPseudoLocale()) === undefined ? (
+                        <>
+                          <Button onClick={joinGame} >
+                            Joindre la partie
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          {playersInGame.length > 0 && getPseudoLocale() === playersInGame[0].pseudo ? (
+                            <>
+                              <RolesDialog />
+                              {/* <Button onClick={distributeRoles} >
+                              Distribuer les rôles
+                            </Button> */}
+                            </>
+                          ) : (
+                            <Button disabled >
+                              En attente du créateur de la partie
+                            </Button>
+                          )}
+                          <Button onClick={() => leaveGame()}>
+                            Quitter la partie
+                          </Button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  {playersInGame.find(p => p.pseudo === getPseudoLocale()) !== undefined ? (
+                    <>
+                      <Button disabled >
+                        En attente des autres joueurs
+                      </Button>
+                      <Button onClick={() => leaveGame()}>
+                        Quitter la partie
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      {canGameReset ? (
+                        <Button onClick={resetGame} >
+                          Recommencer la partie
+                        </Button>
+                      ) : (
+                        <Button onClick={joinGame} >
+                          Joindre la partie
+                        </Button>
+                      )}
+                    </>
+                  )
+                  }
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="w-full px-4 flex flex-col items-center gap-2">
+              <Progress value={phaseTimeRemaining * 100 / PHASE_DURATIONS[currentPhase]} />
+            </div>
+          )
+        }
       </div>
     </div>
   )

@@ -23,5 +23,5 @@ export const RoleImage = ({ role }: RoleImageProps) => {
   };
 
   const image = roleImages[role] || villagerImage;
-  return <img src={image} alt={role} />;
+  return <img src={image} alt={role} className="rounded-md" />;
 };
