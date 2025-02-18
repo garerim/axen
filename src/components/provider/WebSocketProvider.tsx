@@ -104,6 +104,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     const [winner, setWinner] = useState<string | null>(null);
     const [canGameReset, setCanGameReset] = useState(false);
     const [hunterHasKill, setHunterHasKill] = useState(false);
+    const [shotGunPump] = useState(new Audio("audio/werewolf/pumpShot.mp3"));
+    const [pumpReload] = useState(new Audio("audio/werewolf/pumpReload.mp3"));
+    const [healPotion] = useState(new Audio("audio/werewolf/healPotion.mp3"));
+    const [killPotion] = useState(new Audio("audio/werewolf/killPotion.mp3"));
     const [wolfWillKill, setWolfWillKill] = useState<string | null>(null);
     const [witchWantsKill, setWitchWantsKill] = useState<boolean>(false);
     const [witchKill, setWitchKill] = useState<Player | null>(null);
@@ -210,6 +214,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setDayVoted(data.dayVotedArray);
                         break;
                     case 'hunterHasKill':
+                        shotGunPump.play();
                         setHunterHasKill(true);
                         break;
                     case 'general':
@@ -224,6 +229,9 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                         setCurrentPhase(data.phase);
                         if (data.phase === 'night-seer') {
                             setSeerHasFlipped(false);
+                        }
+                        if ((data.phase === 'hunter-phase-1' || data.phase === 'hunter-phase-2') && playersInGame.find((p) => p.role === "hunter")?.isAlive === false && !hunterHasKill) {
+                            pumpReload.play();
                         }
                         setPhaseTimeRemaining(data.timeRemaining);
                         break;
@@ -323,6 +331,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             life: false,
             death: witchPotion.death
         }
+        if (role === 'witch') healPotion.play();
         setWitchPotion(potion);
         sendMessage('savePlayer', { playerPseudo: player });
     }
@@ -334,6 +343,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             life: witchPotion.life,
             death: true
         }
+        if (role === 'witch') killPotion.play();
         setWitchPotion(potion);
     }
 

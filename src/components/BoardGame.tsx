@@ -23,6 +23,7 @@ export default function BoardGame() {
 
   const { setTheme } = useTheme();
   const [seerFlip, setSeerFlip] = useState<string>("");
+  const [villagerWin] = useState(new Audio("audio/werewolf/villagerWin.mp3"));
 
   const {
     currentPlayer,
@@ -74,6 +75,7 @@ export default function BoardGame() {
 
   useEffect(() => {
     if (winner === "villager") {
+      villagerWin.play();
       const end = Date.now() + 3 * 1000; // 3 seconds
       const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
 
